@@ -47,6 +47,7 @@ public:
 		M_IMAGE,
 		M_JOYSTICK,
 		M_KEYBOARD,
+		M_LIBRETRO,
 		M_MATH,
 		M_MOUSE,
 		M_PHYSICS,

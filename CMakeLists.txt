@@ -1097,6 +1097,30 @@ set(LOVE_SRC_MODULE_WINDOW
 source_group("modules\\window" FILES ${LOVE_SRC_MODULE_WINDOW_ROOT})
 source_group("modules\\window\\sdl" FILES ${LOVE_SRC_MODULE_WINDOW_SDL})
 
+#
+# love.libretro
+#
+
+set(LOVE_SRC_MODULE_LIBRETRO_ROOT
+	src/modules/libretro/CoreDll.cpp
+	src/modules/libretro/CoreDll.h
+	src/modules/libretro/LibretroCore.cpp
+	src/modules/libretro/LibretroCore.h
+	src/modules/libretro/libretro.h
+	src/modules/libretro/LibretroMod.cpp
+	src/modules/libretro/LibretroMod.h
+	src/modules/libretro/wrap_LibretroCore.cpp
+	src/modules/libretro/wrap_LibretroCore.h
+	src/modules/libretro/wrap_LibretroMod.cpp
+	src/modules/libretro/wrap_LibretroMod.h
+)
+
+set(LOVE_SRC_MODULE_LIBRETRO
+	${LOVE_SRC_MODULE_LIBRETRO_ROOT}
+)
+
+source_group("modules\\libretro" FILES ${LOVE_SRC_MODULE_LIBRETRO})
+
 ###################################
 # Third-party libraries
 ###################################
@@ -1680,6 +1704,17 @@ set(LOVE_SRC_3P_XXHASH
 
 add_library(love_3p_xxhash ${LOVE_SRC_3P_XXHASH})
 
+#
+# dynlib
+#
+
+set(LOVE_SRC_3P_DYNLIB
+	src/libraries/dynlib/dynlib.c
+	src/libraries/dynlib/dynlib.h
+)
+
+add_library(love_3p_dynlib ${LOVE_SRC_3P_DYNLIB})
+
 set(LOVE_3P
 	love_3p_box2d
 	love_3p_ddsparse
@@ -1694,6 +1729,7 @@ set(LOVE_3P
 	love_3p_physfs
 	love_3p_wuff
 	love_3p_xxhash
+	love_3p_dynlib
 )
 
 love_disable_warnings(love_3p_box2d love_3p_enet love_3p_luasocket love_3p_physfs)
@@ -1724,6 +1760,7 @@ set(LOVE_LIB_SRC
 	${LOVE_SRC_MODULE_TOUCH}
 	${LOVE_SRC_MODULE_VIDEO}
 	${LOVE_SRC_MODULE_WINDOW}
+	${LOVE_SRC_MODULE_LIBRETRO}
 )
 
 include_directories(
