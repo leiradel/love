@@ -44,10 +44,18 @@ int w_Core_getImage(lua_State *L)
     return 1;
 }
 
+int w_Core_getAspectRatio(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+	lua_pushnumber(L, core->getAspectRatio());
+	return 1;
+}
+
 static const luaL_Reg core_functions[] =
 {
     { "step", w_Core_step },
 	{ "getImage", w_Core_getImage },
+	{ "getAspectRatio", w_Core_getAspectRatio },
 	{ 0, 0 }
 };
 

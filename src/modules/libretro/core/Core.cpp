@@ -66,10 +66,14 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
 {
     InstanceSetter instance_setter(this);
 
+    pixelFormat = RETRO_PIXEL_FORMAT_UNKNOWN;
+    scratchBuffer = nullptr;
+    bpp = 0;
+    image = nullptr;
+
     samplesCount = 0;
     libretroPath = {};
     performanceLevel = 0;
-    pixelFormat = RETRO_PIXEL_FORMAT_UNKNOWN;
     supportsNoGame = false;
     supportAchievements = false;
     inputDescriptors = {};
@@ -205,11 +209,17 @@ Core::~Core()
 {
     InstanceSetter instance_setter(this);
     core.deinit();
+    delete[] scratchBuffer;
 }
 
 love::StrongRef<love::graphics::Image> &Core::getImage()
 {
     return image;
+}
+
+float Core::getAspectRatio() const
+{
+    return systemAVInfo.geometry.aspect_ratio;
 }
 
 void Core::step()
@@ -966,6 +976,7 @@ void Core::videoSetGeometry(unsigned width, unsigned height, float aspect, enum 
     {
         // Force the reconstruction of the image in the next refresh
         image = nullptr;
+        free(scratchBuffer);
         this->pixelFormat = pixelFormat;
     }
 }
@@ -989,10 +1000,21 @@ void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_
 
         switch (pixelFormat)
         {
-            case RETRO_PIXEL_FORMAT_XRGB8888: format = PIXELFORMAT_RGBA8; break;
-            case RETRO_PIXEL_FORMAT_RGB565: format = PIXELFORMAT_RGB565; break;
+            case RETRO_PIXEL_FORMAT_XRGB8888:
+                format = PIXELFORMAT_RGBA8;
+                bpp = 4;
+                break;
+
+            case RETRO_PIXEL_FORMAT_RGB565:
+                format = PIXELFORMAT_RGB565;
+                bpp = 2;
+                break;
+
             default: // fallthrough
-            case RETRO_PIXEL_FORMAT_0RGB1555: format = PIXELFORMAT_RGB5A1; break;
+            case RETRO_PIXEL_FORMAT_0RGB1555:
+                format = PIXELFORMAT_RGB5A1;
+                bpp = 2;
+                break;
         }
 
         auto graphics = Module::getInstance<love::graphics::Graphics>(Module::M_GRAPHICS);
@@ -1001,10 +1023,24 @@ void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_
         auto newImage = graphics->newImage(love::graphics::TEXTURE_2D, format, width, height, 1, settings);
 
         image.set(newImage, love::Acquire::RETAIN);
+
+        delete[] scratchBuffer;
+        scratchBuffer = new uint8_t[width * height * bpp];
+    }
+
+    const uint8_t *source = static_cast<const uint8_t*>(data);
+    uint8_t *dest = scratchBuffer;
+
+    for (unsigned y = 0; y < height; y++)
+    {
+        memcpy(dest, source, width * bpp);
+
+        source += pitch;
+        dest += width * bpp;
     }
 
     love::Rect rect = {0, 0, (int)width, (int)height};
-    image->replacePixels(data, pitch * height, 0, 0, rect, true);
+    image->replacePixels(scratchBuffer, width * height * bpp, 0, 0, rect, true);
 }
 
 uintptr_t Core::videoGetCurrentFramebuffer()

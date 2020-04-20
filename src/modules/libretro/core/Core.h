@@ -45,6 +45,7 @@ public:
 	virtual ~Core();
 
     love::StrongRef<love::graphics::Image> &getImage();
+    float getAspectRatio() const;
 
     void step();
 
@@ -246,6 +247,8 @@ protected:
     retro_proc_address_t videoGetProcAddress(const char *symbol);
 
     enum retro_pixel_format pixelFormat;
+    uint8_t *scratchBuffer;
+    unsigned bpp;
     love::StrongRef<love::graphics::Image> image;
 
     // Config
