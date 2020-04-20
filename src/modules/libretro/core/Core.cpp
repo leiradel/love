@@ -1031,12 +1031,35 @@ void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_
     const uint8_t *source = static_cast<const uint8_t*>(data);
     uint8_t *dest = scratchBuffer;
 
-    for (unsigned y = 0; y < height; y++)
+    if (pixelFormat != RETRO_PIXEL_FORMAT_XRGB8888)
     {
-        memcpy(dest, source, width * bpp);
+        for (unsigned y = 0; y < height; y++)
+        {
+            memcpy(dest, source, width * bpp);
 
-        source += pitch;
-        dest += width * bpp;
+            source += pitch;
+            dest += width * bpp;
+        }
+    }
+    else
+    {
+        for (unsigned y = 0; y < height; y++)
+        {
+            for (unsigned x = 0; x < width; x++)
+            {
+                // xRGB
+                uint32_t pixel = ((uint32_t*)source)[x];
+
+                // ABGR
+                ((uint32_t*)dest)[x] = UINT32_C(0xff000000)
+                                     | (pixel & 0x00ff0000) >> 16
+                                     | (pixel & 0x0000ff00)
+                                     | (pixel & 0x000000ff) << 16;
+            }
+
+            source += pitch;
+            dest += width * bpp;
+        }
     }
 
     love::Rect rect = {0, 0, (int)width, (int)height};
