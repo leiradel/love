@@ -18,8 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
-#ifndef LOVE_VIDEO_WRAP_LIBRETROMOD_H
-#define LOVE_VIDEO_WRAP_LIBRETROMOD_H
+#ifndef LOVE_VIDEO_WRAP_LIBRETRO_H
+#define LOVE_VIDEO_WRAP_LIBRETRO_H
 
 // LOVE
 #include "common/runtime.h"
@@ -34,4 +34,4 @@ extern "C" LOVE_EXPORT int luaopen_love_libretro(lua_State *L);
 } // libretro
 } // love
 
-#endif // LOVE_VIDEO_WRAP_LIBRETROMOD_H
+#endif // LOVE_VIDEO_WRAP_LIBRETRO_H

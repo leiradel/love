@@ -19,16 +19,16 @@
  **/
 
 // LOVE
-#include "LibretroMod.h"
+#include "Libretro.h"
 
 namespace love
 {
 namespace libretro
 {
 
-LibretroCore *LibretroMod::newCore(const std::string &corePath, const std::string &gamePath)
+Core *Libretro::newCore(const std::string &corePath, const std::string &gamePath)
 {
-    return new LibretroCore(corePath, gamePath);
+    return new Core(corePath, gamePath);
 }
 
 } // libretro

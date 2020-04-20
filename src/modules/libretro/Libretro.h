@@ -24,18 +24,18 @@
 // LOVE
 #include "common/Module.h"
 
-#include "LibretroCore.h"
+#include "core/Core.h"
 
 namespace love
 {
 namespace libretro
 {
 
-class LibretroMod : public Module
+class Libretro : public Module
 {
 public:
-	LibretroMod() {}
-	virtual ~LibretroMod() {}
+	Libretro() {}
+	virtual ~Libretro() {}
 
 	// Implements Module
 	virtual ModuleType getModuleType() const { return M_LIBRETRO; }
@@ -44,7 +44,7 @@ public:
 	/**
 	 * Create a LibretroCore representing a loaded libretro core
 	 **/
-	virtual LibretroCore *newCore(const std::string &corePath, const std::string &gamePath);
+	virtual Core *newCore(const std::string &corePath, const std::string &gamePath);
 }; // Video
 
 } // video

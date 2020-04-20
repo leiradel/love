@@ -22,14 +22,14 @@
 
 // LOVE
 #include "common/runtime.h"
-#include "LibretroCore.h"
+#include "core/Core.h"
 
 namespace love
 {
 namespace libretro
 {
 
-LOVE_EXPORT int luaopen_libretrocore(lua_State *L);
+LOVE_EXPORT int luaopen_core(lua_State *L);
 
 } // libretro
 } // love

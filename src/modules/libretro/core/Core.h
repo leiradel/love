@@ -35,14 +35,14 @@ namespace love
 namespace libretro
 {
 
-class LibretroCore : public Object
+class Core : public Object
 {
 public:
 
 	static love::Type type;
 
-    LibretroCore(const std::string& corePath, const std::string &gamePath);
-	virtual ~LibretroCore();
+    Core(const std::string& corePath, const std::string &gamePath);
+	virtual ~Core();
 
     love::StrongRef<love::graphics::Image> &getImage();
 

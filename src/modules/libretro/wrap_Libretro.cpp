@@ -19,23 +19,23 @@
  **/
 
 // LOVE
-#include "LibretroMod.h"
-#include "wrap_LibretroMod.h"
-#include "wrap_LibretroCore.h"
+#include "Libretro.h"
+#include "wrap_Libretro.h"
+#include "wrap_Core.h"
 
 namespace love
 {
 namespace libretro
 {
 
-#define instance() (Module::getInstance<LibretroMod>(Module::M_LIBRETRO))
+#define instance() (Module::getInstance<Libretro>(Module::M_LIBRETRO))
 
 int w_newCore(lua_State *L)
 {
 	const char *corePath = luaL_checkstring(L, 1);
-	const char *gamePath = luaL_checkstring(L, 2);
+	const char *gamePath = luaL_optstring(L, 2, "");
 
-	LibretroCore *core = nullptr;
+	Core *core = nullptr;
 	luax_catchexcept(L, [&]() {
 		core = instance()->newCore(corePath, gamePath);
 	});
@@ -47,7 +47,7 @@ int w_newCore(lua_State *L)
 
 static const lua_CFunction types[] =
 {
-	luaopen_libretrocore,
+	luaopen_core,
 	0
 };
 
@@ -59,10 +59,10 @@ static const luaL_Reg functions[] =
 
 extern "C" int luaopen_love_libretro(lua_State *L)
 {
-	LibretroMod *instance = instance();
+	Libretro *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::libretro::LibretroMod(); });
+		luax_catchexcept(L, [&](){ instance = new love::libretro::Libretro(); });
 	}
 	else
 		instance->retain();
@@ -79,5 +79,3 @@ extern "C" int luaopen_love_libretro(lua_State *L)
 
 } // libretro
 } // love
-
-#include "wrap_LibretroCore.cpp"

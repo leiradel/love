@@ -18,42 +18,42 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
-#include "wrap_LibretroCore.h"
+#include "wrap_Core.h"
 
 namespace love
 {
 namespace libretro
 {
 
-LibretroCore *luax_checklibretrocore(lua_State *L, int idx)
+Core *luax_checkcore(lua_State *L, int idx)
 {
-	return luax_checktype<LibretroCore>(L, idx);
+	return luax_checktype<Core>(L, idx);
 }
 
-int w_LibretroCore_step(lua_State *L)
+int w_Core_step(lua_State *L)
 {
-	auto core = luax_checklibretrocore(L, 1);
+	auto core = luax_checkcore(L, 1);
     core->step();
     return 0;
 }
 
-int w_LibretroCore_getImage(lua_State *L)
+int w_Core_getImage(lua_State *L)
 {
-	auto core = luax_checklibretrocore(L, 1);
+	auto core = luax_checkcore(L, 1);
     luax_pushtype<love::graphics::Image>(L, core->getImage());
     return 1;
 }
 
-static const luaL_Reg libretrocore_functions[] =
+static const luaL_Reg core_functions[] =
 {
-    { "step", w_LibretroCore_step },
-	{ "getImage", w_LibretroCore_getImage },
+    { "step", w_Core_step },
+	{ "getImage", w_Core_getImage },
 	{ 0, 0 }
 };
 
-int luaopen_libretrocore(lua_State *L)
+int luaopen_core(lua_State *L)
 {
-	return luax_register_type(L, &LibretroCore::type, libretrocore_functions, nullptr);
+	return luax_register_type(L, &Core::type, core_functions, nullptr);
 }
 
 } // libretro

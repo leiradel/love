@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 
 // LOVE
-#include "LibretroCore.h"
+#include "Core.h"
 
 #include "graphics/Graphics.h"
 
@@ -38,13 +38,13 @@ namespace libretro
  * Unavoidable because the libretro API don't have an userdata pointer to
  * allow us pass and receive back the core instance :/
  */
-static thread_local LibretroCore *s_instance;
+static thread_local Core *s_instance;
 
 // Helper class to set and unset the s_instance thread local.
 class InstanceSetter
 {
 public:
-    InstanceSetter(LibretroCore *instance)
+    InstanceSetter(Core *instance)
     {
         previous = s_instance;
         s_instance = instance;
@@ -56,12 +56,12 @@ public:
     }
 
 protected:
-    LibretroCore *previous;
+    Core *previous;
 };
 
-love::Type LibretroCore::type("LibretroCore", &Object::type);
+love::Type Core::type("Core", &Object::type);
 
-LibretroCore::LibretroCore(const std::string& corePath, const std::string &gamePath)
+Core::Core(const std::string& corePath, const std::string &gamePath)
     : core(corePath)
 {
     InstanceSetter instance_setter(this);
@@ -201,18 +201,18 @@ LibretroCore::LibretroCore(const std::string& corePath, const std::string &gameP
     }
 }
 
-LibretroCore::~LibretroCore()
+Core::~Core()
 {
     InstanceSetter instance_setter(this);
     core.deinit();
 }
 
-love::StrongRef<love::graphics::Image> &LibretroCore::getImage()
+love::StrongRef<love::graphics::Image> &Core::getImage()
 {
     return image;
 }
 
-void LibretroCore::step()
+void Core::step()
 {
     InstanceSetter instance_setter(this);
 
@@ -237,78 +237,78 @@ void LibretroCore::step()
         audioMix(samples, samplesCount / 2);
 }
 
-unsigned LibretroCore::getApiVersion()
+unsigned Core::getApiVersion()
 {
     InstanceSetter instance_setter(this);
     return core.apiVersion();
 }
 
-unsigned LibretroCore::getRegion()
+unsigned Core::getRegion()
 {
     InstanceSetter instance_setter(this);
     return core.getRegion();
 }
 
-void* LibretroCore::getMemoryData(unsigned id)
+void* Core::getMemoryData(unsigned id)
 {
     InstanceSetter instance_setter(this);
     return core.getMemoryData(id);
 }
 
-size_t LibretroCore::getMemorySize(unsigned id)
+size_t Core::getMemorySize(unsigned id)
 {
     InstanceSetter instance_setter(this);
     return core.getMemorySize(id);
 }
 
-void LibretroCore::resetGame()
+void Core::resetGame()
 {
     InstanceSetter instance_setter(this);
     core.reset();
 }
 
-size_t LibretroCore::serializeSize()
+size_t Core::serializeSize()
 {
     InstanceSetter instance_setter(this);
     return core.serializeSize();
 }
 
-bool LibretroCore::serialize(void *data, size_t size)
+bool Core::serialize(void *data, size_t size)
 {
     InstanceSetter instance_setter(this);
     return core.serialize(data, size);
 }
 
-bool LibretroCore::unserialize(const void *data, size_t size)
+bool Core::unserialize(const void *data, size_t size)
 {
     InstanceSetter instance_setter(this);
     return core.unserialize(data, size);
 }
 
-bool LibretroCore::setRotation(unsigned data)
+bool Core::setRotation(unsigned data)
 {
     // TODO implement me!
 }
 
-bool LibretroCore::getOverscan(bool *data) const
+bool Core::getOverscan(bool *data) const
 {
     *data = false;
     return true;
 }
 
-bool LibretroCore::getCanDupe(bool *data) const
+bool Core::getCanDupe(bool *data) const
 {
     *data = true;
     return true;
 }
 
-bool LibretroCore::setMessage(const struct retro_message *data)
+bool Core::setMessage(const struct retro_message *data)
 {
     videoShowMessage(data->msg, data->frames);
     return true;
 }
 
-void LibretroCore::setTrayOpen(bool open)
+void Core::setTrayOpen(bool open)
 {
     InstanceSetter instance_setter(this);
 
@@ -316,7 +316,7 @@ void LibretroCore::setTrayOpen(bool open)
         diskControlInterface.set_eject_state(open);
 }
 
-void LibretroCore::setCurrentDiscIndex(unsigned index)
+void Core::setCurrentDiscIndex(unsigned index)
 {
     InstanceSetter instance_setter(this);
 
@@ -324,24 +324,24 @@ void LibretroCore::setCurrentDiscIndex(unsigned index)
         diskControlInterface.set_image_index(index);
 }
 
-bool LibretroCore::shutdown()
+bool Core::shutdown()
 {
     return false;
 }
 
-bool LibretroCore::setPerformanceLevel(unsigned data)
+bool Core::setPerformanceLevel(unsigned data)
 {
     performanceLevel = data;
     return true;
 }
 
-bool LibretroCore::getSystemDirectory(const char **data) const
+bool Core::getSystemDirectory(const char **data) const
 {
     *data = configGetSystemPath().c_str();
     return true;
 }
 
-bool LibretroCore::setPixelFormat(enum retro_pixel_format data)
+bool Core::setPixelFormat(enum retro_pixel_format data)
 {
     switch (data)
     {
@@ -358,7 +358,7 @@ bool LibretroCore::setPixelFormat(enum retro_pixel_format data)
     }
 }
 
-bool LibretroCore::setInputDescriptors(const struct retro_input_descriptor *data)
+bool Core::setInputDescriptors(const struct retro_input_descriptor *data)
 {
     const struct retro_input_descriptor *desc;
 
@@ -380,19 +380,19 @@ bool LibretroCore::setInputDescriptors(const struct retro_input_descriptor *data
     return true;
 }
 
-bool LibretroCore::setKeyboardCallback(const struct retro_keyboard_callback *data)
+bool Core::setKeyboardCallback(const struct retro_keyboard_callback *data)
 {
     (void)data;
     return true;
 }
 
-bool LibretroCore::setDiskControlInterface(const struct retro_disk_control_callback *data)
+bool Core::setDiskControlInterface(const struct retro_disk_control_callback *data)
 {
   diskControlInterface = *data;
   return true;
 }
 
-bool LibretroCore::setHWRender(struct retro_hw_render_callback *data)
+bool Core::setHWRender(struct retro_hw_render_callback *data)
 {
     if (!videoSupportsContext(data->context_type))
         return false;
@@ -405,13 +405,13 @@ bool LibretroCore::setHWRender(struct retro_hw_render_callback *data)
     return true;
 }
 
-bool LibretroCore::getVariable(struct retro_variable *data)
+bool Core::getVariable(struct retro_variable *data)
 {
     data->value = configGetVariable(data->key).c_str();
     return true;
 }
 
-bool LibretroCore::setVariables(const struct retro_variable *data)
+bool Core::setVariables(const struct retro_variable *data)
 {
     const struct retro_variable *var;
 
@@ -430,91 +430,91 @@ bool LibretroCore::setVariables(const struct retro_variable *data)
     return true;
 }
 
-bool LibretroCore::getVariableUpdate(bool *data)
+bool Core::getVariableUpdate(bool *data)
 {
     *data = configVarUpdated();
     return true;
 }
 
-bool LibretroCore::setSupportNoGame(bool data)
+bool Core::setSupportNoGame(bool data)
 {
     supportsNoGame = data;
     return true;
 }
 
-bool LibretroCore::getLibretroPath(const char **data) const
+bool Core::getLibretroPath(const char **data) const
 {
     *data = libretroPath.c_str();
     return true;
 }
 
-bool LibretroCore::setFrameTimeCallback(const struct retro_frame_time_callback *data)
+bool Core::setFrameTimeCallback(const struct retro_frame_time_callback *data)
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::setAudioCallback(const struct retro_audio_callback *data)
+bool Core::setAudioCallback(const struct retro_audio_callback *data)
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getRumbleInterface(struct retro_rumble_interface *data) const
+bool Core::getRumbleInterface(struct retro_rumble_interface *data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getInputDeviceCapabilities(uint64_t *data) const
+bool Core::getInputDeviceCapabilities(uint64_t *data) const
 {
     *data = (1 << RETRO_DEVICE_JOYPAD) | (1 << RETRO_DEVICE_ANALOG) | (1 << RETRO_DEVICE_MOUSE);
     return false;
 }
 
-bool LibretroCore::getSensorInterface(struct retro_sensor_interface *data) const
+bool Core::getSensorInterface(struct retro_sensor_interface *data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getCameraInterface(struct retro_camera_callback *data) const
+bool Core::getCameraInterface(struct retro_camera_callback *data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getLogInterface(struct retro_log_callback *data) const
+bool Core::getLogInterface(struct retro_log_callback *data) const
 {
   data->log = staticLogCallback;
   return true;
 }
 
-bool LibretroCore::getPerfInterface(struct retro_perf_callback *data) const
+bool Core::getPerfInterface(struct retro_perf_callback *data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getLocationInterface(struct retro_location_callback *data) const
+bool Core::getLocationInterface(struct retro_location_callback *data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getCoreAssetsDirectory(const char **data) const
+bool Core::getCoreAssetsDirectory(const char **data) const
 {
     *data = configGetCoreAssetsDirectory().c_str();
     return true;
 }
 
-bool LibretroCore::getSaveDirectory(const char** data) const
+bool Core::getSaveDirectory(const char** data) const
 {
     *data = configGetSaveDirectory().c_str();
     return true;
 }
 
-bool LibretroCore::setSystemAVInfo(const struct retro_system_av_info *data)
+bool Core::setSystemAVInfo(const struct retro_system_av_info *data)
 {
     systemAVInfo = *data;
 
@@ -540,13 +540,13 @@ bool LibretroCore::setSystemAVInfo(const struct retro_system_av_info *data)
     return true;
 }
 
-bool LibretroCore::setProcAddressCallback(const struct retro_get_proc_address_interface *data)
+bool Core::setProcAddressCallback(const struct retro_get_proc_address_interface *data)
 {
   (void)data;
   return false;
 }
 
-bool LibretroCore::setSubsystemInfo(const struct retro_subsystem_info *data)
+bool Core::setSubsystemInfo(const struct retro_subsystem_info *data)
 {
     const struct retro_subsystem_info *info;
 
@@ -581,7 +581,7 @@ bool LibretroCore::setSubsystemInfo(const struct retro_subsystem_info *data)
     return true;
 }
 
-bool LibretroCore::setControllerInfo(const struct retro_controller_info *data)
+bool Core::setControllerInfo(const struct retro_controller_info *data)
 {
     const struct retro_controller_info *info;
 
@@ -607,7 +607,7 @@ bool LibretroCore::setControllerInfo(const struct retro_controller_info *data)
     return true;
 }
 
-bool LibretroCore::setMemoryMaps(const struct retro_memory_map *data)
+bool Core::setMemoryMaps(const struct retro_memory_map *data)
 {
     memoryMap.descriptors.resize(data->num_descriptors);
 
@@ -632,7 +632,7 @@ bool LibretroCore::setMemoryMaps(const struct retro_memory_map *data)
   return true;
 }
 
-bool LibretroCore::setGeometry(const struct retro_game_geometry *data)
+bool Core::setGeometry(const struct retro_game_geometry *data)
 {
     systemAVInfo.geometry.base_width = data->base_width;
     systemAVInfo.geometry.base_height = data->base_height;
@@ -660,37 +660,37 @@ bool LibretroCore::setGeometry(const struct retro_game_geometry *data)
     return true;
 }
 
-bool LibretroCore::getUsername(const char **data) const
+bool Core::getUsername(const char **data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getLanguage(unsigned *data) const
+bool Core::getLanguage(unsigned *data) const
 {
     *data = RETRO_LANGUAGE_ENGLISH;
     return true;
 }
 
-bool LibretroCore::getCurrentSoftwareFramebuffer(struct retro_framebuffer *data) const
+bool Core::getCurrentSoftwareFramebuffer(struct retro_framebuffer *data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::getHWRenderInterface(const struct retro_hw_render_interface **data) const
+bool Core::getHWRenderInterface(const struct retro_hw_render_interface **data) const
 {
     (void)data;
     return false;
 }
 
-bool LibretroCore::setSupportAchievements(bool data)
+bool Core::setSupportAchievements(bool data)
 {
     supportAchievements = data;
     return true;
 }
 
-bool LibretroCore::environmentCallback(unsigned cmd, void *data)
+bool Core::environmentCallback(unsigned cmd, void *data)
 {
     bool ret;
 
@@ -818,12 +818,12 @@ bool LibretroCore::environmentCallback(unsigned cmd, void *data)
     }
 }
 
-void LibretroCore::videoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
+void Core::videoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
 {
     videoRefresh(data, width, height, pitch);
 }
 
-size_t LibretroCore::audioSampleBatchCallback(const int16_t *data, size_t frames)
+size_t Core::audioSampleBatchCallback(const int16_t *data, size_t frames)
 {
     if (samplesCount + frames * 2 < sizeof(samples) / sizeof(samples[0]))
     {
@@ -834,7 +834,7 @@ size_t LibretroCore::audioSampleBatchCallback(const int16_t *data, size_t frames
     return frames;
 }
 
-void LibretroCore::audioSampleCallback(int16_t left, int16_t right)
+void Core::audioSampleCallback(int16_t left, int16_t right)
 {
     if (samplesCount + 2 < sizeof(samples) / sizeof(samples[0]))
     {
@@ -843,72 +843,72 @@ void LibretroCore::audioSampleCallback(int16_t left, int16_t right)
     }
 }
 
-int16_t LibretroCore::inputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
+int16_t Core::inputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
 {
     return inputRead(port, device, index, id);
 }
 
-void LibretroCore::inputPollCallback()
+void Core::inputPollCallback()
 {
     return inputPoll();
 }
 
-uintptr_t LibretroCore::getCurrentFramebuffer()
+uintptr_t Core::getCurrentFramebuffer()
 {
     return videoGetCurrentFramebuffer();
 }
 
-retro_proc_address_t LibretroCore::getProcAddress(const char* symbol)
+retro_proc_address_t Core::getProcAddress(const char* symbol)
 {
     return videoGetProcAddress(symbol);
 }
 
-void LibretroCore::logCallback(enum retro_log_level level, const char *fmt, va_list args)
+void Core::logCallback(enum retro_log_level level, const char *fmt, va_list args)
 {
     logVprintf(level, fmt, args);
 }
 
-bool LibretroCore::staticEnvironmentCallback(unsigned cmd, void* data)
+bool Core::staticEnvironmentCallback(unsigned cmd, void* data)
 {
     return s_instance->environmentCallback(cmd, data);
 }
 
-void LibretroCore::staticVideoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
+void Core::staticVideoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
 {
     s_instance->videoRefreshCallback(data, width, height, pitch);
 }
 
-size_t LibretroCore::staticAudioSampleBatchCallback(const int16_t* data, size_t frames)
+size_t Core::staticAudioSampleBatchCallback(const int16_t* data, size_t frames)
 {
     return s_instance->audioSampleBatchCallback(data, frames);
 }
 
-void LibretroCore::staticAudioSampleCallback(int16_t left, int16_t right)
+void Core::staticAudioSampleCallback(int16_t left, int16_t right)
 {
     s_instance->audioSampleCallback(left, right);
 }
 
-int16_t LibretroCore::staticInputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
+int16_t Core::staticInputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
 {
     return s_instance->inputStateCallback(port, device, index, id);
 }
 
-void LibretroCore::staticInputPollCallback()
+void Core::staticInputPollCallback()
 {
     s_instance->inputPollCallback();
 }
 
-uintptr_t LibretroCore::staticGetCurrentFramebuffer()
+uintptr_t Core::staticGetCurrentFramebuffer()
 {
     return s_instance->getCurrentFramebuffer();
 }
 
-retro_proc_address_t LibretroCore::staticGetProcAddress(const char* symbol)
+retro_proc_address_t Core::staticGetProcAddress(const char* symbol)
 {
     return s_instance->getProcAddress(symbol);
 }
 
-void LibretroCore::staticLogCallback(enum retro_log_level level, const char *fmt, ...)
+void Core::staticLogCallback(enum retro_log_level level, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -916,45 +916,45 @@ void LibretroCore::staticLogCallback(enum retro_log_level level, const char *fmt
     va_end(args);
 }
 
-bool LibretroCore::inputCtrlUpdated()
+bool Core::inputCtrlUpdated()
 {
     // TODO implement me!
     return false;
 }
 
-unsigned LibretroCore::inputGetController(unsigned port)
+unsigned Core::inputGetController(unsigned port)
 {
     // TODO implement me!
     return RETRO_DEVICE_NONE;
 }
 
-void LibretroCore::inputSetInputDescriptors(const std::vector<InputDescriptor> &descs)
+void Core::inputSetInputDescriptors(const std::vector<InputDescriptor> &descs)
 {
     // TODO implement me!
 }
 
-int16_t LibretroCore::inputRead(unsigned port, unsigned device, unsigned index, unsigned id)
+int16_t Core::inputRead(unsigned port, unsigned device, unsigned index, unsigned id)
 {
     // TODO implement me!
     return 0;
 }
 
-void LibretroCore::inputPoll()
+void Core::inputPoll()
 {
     // TODO implement me!
 }
 
-void LibretroCore::audioSetRate(double rate)
+void Core::audioSetRate(double rate)
 {
     // TODO implement me!
 }
 
-void LibretroCore::audioMix(const int16_t *samples, size_t frames)
+void Core::audioMix(const int16_t *samples, size_t frames)
 {
     // TODO implement me!
 }
 
-void LibretroCore::videoSetGeometry(unsigned width, unsigned height, float aspect, enum retro_pixel_format pixelFormat,
+void Core::videoSetGeometry(unsigned width, unsigned height, float aspect, enum retro_pixel_format pixelFormat,
                                     const HWRenderCallback* hwRenderCallback)
 {
     (void)width;
@@ -970,18 +970,18 @@ void LibretroCore::videoSetGeometry(unsigned width, unsigned height, float aspec
     }
 }
 
-void LibretroCore::videoShowMessage(const char* msg, unsigned frames)
+void Core::videoShowMessage(const char* msg, unsigned frames)
 {
     // TODO implement me!
 }
 
-bool LibretroCore::videoSupportsContext(enum retro_hw_context_type type)
+bool Core::videoSupportsContext(enum retro_hw_context_type type)
 {
     // TODO implement me!
     return false;
 }
 
-void LibretroCore::videoRefresh(const void* data, unsigned width, unsigned height, size_t pitch)
+void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_t pitch)
 {
     if (!image || image->getWidth() != width || image->getHeight() != height)
     {
@@ -1007,58 +1007,58 @@ void LibretroCore::videoRefresh(const void* data, unsigned width, unsigned heigh
     image->replacePixels(data, pitch * height, 0, 0, rect, true);
 }
 
-uintptr_t LibretroCore::videoGetCurrentFramebuffer()
+uintptr_t Core::videoGetCurrentFramebuffer()
 {
     // TODO implement me!
     return 0;
 }
 
-retro_proc_address_t LibretroCore::videoGetProcAddress(const char *symbol)
+retro_proc_address_t Core::videoGetProcAddress(const char *symbol)
 {
     // TODO implement me!
     return nullptr;
 }
 
-const std::string &LibretroCore::configGetSystemPath() const
+const std::string &Core::configGetSystemPath() const
 {
     // TODO implement me!
     static const std::string path = "~/home/.love/libretro/system";
     return path;
 }
 
-const std::string &LibretroCore::configGetCoreAssetsDirectory() const
+const std::string &Core::configGetCoreAssetsDirectory() const
 {
     // TODO implement me!
     static const std::string path = "~/home/.love/libretro/assets";
     return path;
 }
 
-const std::string &LibretroCore::configGetSaveDirectory() const
+const std::string &Core::configGetSaveDirectory() const
 {
     // TODO implement me!
     static const std::string path = "~/home/.love/libretro/saves";
     return path;
 }
 
-const std::string &LibretroCore::configGetVariable(const std::string &variable)
+const std::string &Core::configGetVariable(const std::string &variable)
 {
     // TODO implement me!
     static const std::string value = "";
     return value;
 }
 
-void LibretroCore::configSetVariables(const std::vector<Variable> &variables)
+void Core::configSetVariables(const std::vector<Variable> &variables)
 {
     // TODO implement me!
 }
 
-bool LibretroCore::configVarUpdated()
+bool Core::configVarUpdated()
 {
     // TODO implement me!
     return false;
 }
 
-void LibretroCore::logVprintf(enum retro_log_level level, const char* fmt, va_list args)
+void Core::logVprintf(enum retro_log_level level, const char* fmt, va_list args)
 {
     // TODO implement me!
 }
@@ -1111,7 +1111,7 @@ static size_t highestBit(size_t n)
     return n ^ (n >> 1);
 }
 
-bool LibretroCore::preprocessMemoryDescriptors()
+bool Core::preprocessMemoryDescriptors()
 {
     size_t disconnect_mask;
     size_t top_addr = 1;

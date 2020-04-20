@@ -1102,17 +1102,20 @@ source_group("modules\\window\\sdl" FILES ${LOVE_SRC_MODULE_WINDOW_SDL})
 #
 
 set(LOVE_SRC_MODULE_LIBRETRO_ROOT
+	src/modules/libretro/Libretro.cpp
+	src/modules/libretro/Libretro.h
+	src/modules/libretro/wrap_Core.cpp
+	src/modules/libretro/wrap_Core.h
+	src/modules/libretro/wrap_Libretro.cpp
+	src/modules/libretro/wrap_Libretro.h
+)
+
+set(LOVE_SRC_MODULE_LIBRETRO_CORE
+	src/modules/libretro/Core.cpp
+	src/modules/libretro/Core.h
 	src/modules/libretro/CoreDll.cpp
 	src/modules/libretro/CoreDll.h
-	src/modules/libretro/LibretroCore.cpp
-	src/modules/libretro/LibretroCore.h
 	src/modules/libretro/libretro.h
-	src/modules/libretro/LibretroMod.cpp
-	src/modules/libretro/LibretroMod.h
-	src/modules/libretro/wrap_LibretroCore.cpp
-	src/modules/libretro/wrap_LibretroCore.h
-	src/modules/libretro/wrap_LibretroMod.cpp
-	src/modules/libretro/wrap_LibretroMod.h
 )
 
 set(LOVE_SRC_MODULE_LIBRETRO
