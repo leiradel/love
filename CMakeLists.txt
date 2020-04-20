@@ -1111,15 +1111,16 @@ set(LOVE_SRC_MODULE_LIBRETRO_ROOT
 )
 
 set(LOVE_SRC_MODULE_LIBRETRO_CORE
-	src/modules/libretro/Core.cpp
-	src/modules/libretro/Core.h
-	src/modules/libretro/CoreDll.cpp
-	src/modules/libretro/CoreDll.h
-	src/modules/libretro/libretro.h
+	src/modules/libretro/core/Core.cpp
+	src/modules/libretro/core/Core.h
+	src/modules/libretro/core/CoreDll.cpp
+	src/modules/libretro/core/CoreDll.h
+	src/modules/libretro/core/libretro.h
 )
 
 set(LOVE_SRC_MODULE_LIBRETRO
 	${LOVE_SRC_MODULE_LIBRETRO_ROOT}
+	${LOVE_SRC_MODULE_LIBRETRO_CORE}
 )
 
 source_group("modules\\libretro" FILES ${LOVE_SRC_MODULE_LIBRETRO})
