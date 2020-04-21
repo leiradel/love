@@ -66,7 +66,9 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
 {
     InstanceSetter instance_setter(this);
 
-    pixelFormat = RETRO_PIXEL_FORMAT_UNKNOWN;
+    memset(ctrlState, 0, sizeof(ctrlState));
+
+    pixelFormat = lrcpp::PixelFormat::Unknown;
     scratchBuffer = nullptr;
     bpp = 0;
     image = nullptr;
@@ -84,7 +86,6 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
     systemAVInfo = {};
     subsystemInfo = {};
     controllerInfo = {};
-    ports = {};
     diskControlInterfaceSet = false;
     diskControlInterface = {};
     memoryMap = {};
@@ -162,7 +163,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
         {
             if (needsHardwareRender)
             {
-                hardwareRenderCallback.context_reset();
+                hardwareRenderCallback.contextReset();
             }
 
             core.setVideoRefresh(staticVideoRefreshCallback);
@@ -171,21 +172,23 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
             core.setInputState(staticInputStateCallback);
             core.setInputPoll(staticInputPollCallback);
 
-            core.getSystemAVInfo(&systemAVInfo);
+            retro_system_av_info system_av_info;
+            core.getSystemAVInfo(&system_av_info);
+            systemAVInfo = system_av_info;
 
-            if (systemAVInfo.geometry.aspect_ratio <= 0.0f)
-                systemAVInfo.geometry.aspect_ratio = (float)systemAVInfo.geometry.base_width /
-                                                     (float)systemAVInfo.geometry.base_height;
+            if (systemAVInfo.geometry.aspectRatio <= 0.0f)
+                systemAVInfo.geometry.aspectRatio = (float)systemAVInfo.geometry.baseWidth /
+                                                    (float)systemAVInfo.geometry.baseHeight;
 
-            const struct retro_hw_render_callback *cb = needsHardwareRender ? &hardwareRenderCallback : NULL;
+            const lrcpp::HWRenderCallback *cb = needsHardwareRender ? &hardwareRenderCallback : NULL;
 
-            videoSetGeometry(systemAVInfo.geometry.base_width,
-                             systemAVInfo.geometry.base_height,
-                             systemAVInfo.geometry.aspect_ratio,
+            videoSetGeometry(systemAVInfo.geometry.baseWidth,
+                             systemAVInfo.geometry.baseHeight,
+                             systemAVInfo.geometry.aspectRatio,
                              pixelFormat,
                              cb);
 
-            audioSetRate(systemAVInfo.timing.sample_rate);
+            audioSetRate(systemAVInfo.timing.sampleRate);
 
             for (size_t i = 0; i < controllerInfo.size(); i++)
             {
@@ -208,6 +211,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
 Core::~Core()
 {
     InstanceSetter instance_setter(this);
+    core.unloadGame();
     core.deinit();
     delete[] scratchBuffer;
 }
@@ -219,80 +223,24 @@ love::StrongRef<love::graphics::Image> &Core::getImage()
 
 float Core::getAspectRatio() const
 {
-    return systemAVInfo.geometry.aspect_ratio;
+    return systemAVInfo.geometry.aspectRatio;
+}
+
+void Core::setInput(unsigned port, unsigned device, unsigned index, unsigned id, int16_t value)
+{
+    if (port < 8 && device < 7 && index < 3 && id < 17)
+        ctrlState[port][device][index][id] = value;
 }
 
 void Core::step()
 {
     InstanceSetter instance_setter(this);
 
-    if (inputCtrlUpdated())
-    {
-        for (unsigned i = 0; i < controllerInfo.size(); i++)
-        {
-            unsigned device = inputGetController(i);
-
-            if (device != ports[i])
-            {
-                ports[i] = device;
-                core.setControllerPortDevice(i, device);
-            }
-        }
-    }
-
     samplesCount = 0;
     core.run();
 
     if (samplesCount > 0)
         audioMix(samples, samplesCount / 2);
-}
-
-unsigned Core::getApiVersion()
-{
-    InstanceSetter instance_setter(this);
-    return core.apiVersion();
-}
-
-unsigned Core::getRegion()
-{
-    InstanceSetter instance_setter(this);
-    return core.getRegion();
-}
-
-void* Core::getMemoryData(unsigned id)
-{
-    InstanceSetter instance_setter(this);
-    return core.getMemoryData(id);
-}
-
-size_t Core::getMemorySize(unsigned id)
-{
-    InstanceSetter instance_setter(this);
-    return core.getMemorySize(id);
-}
-
-void Core::resetGame()
-{
-    InstanceSetter instance_setter(this);
-    core.reset();
-}
-
-size_t Core::serializeSize()
-{
-    InstanceSetter instance_setter(this);
-    return core.serializeSize();
-}
-
-bool Core::serialize(void *data, size_t size)
-{
-    InstanceSetter instance_setter(this);
-    return core.serialize(data, size);
-}
-
-bool Core::unserialize(const void *data, size_t size)
-{
-    InstanceSetter instance_setter(this);
-    return core.unserialize(data, size);
 }
 
 bool Core::setRotation(unsigned data)
@@ -318,22 +266,6 @@ bool Core::setMessage(const struct retro_message *data)
     return true;
 }
 
-void Core::setTrayOpen(bool open)
-{
-    InstanceSetter instance_setter(this);
-
-    if (diskControlInterfaceSet)
-        diskControlInterface.set_eject_state(open);
-}
-
-void Core::setCurrentDiscIndex(unsigned index)
-{
-    InstanceSetter instance_setter(this);
-
-    if (diskControlInterfaceSet)
-        diskControlInterface.set_image_index(index);
-}
-
 bool Core::shutdown()
 {
     return false;
@@ -356,14 +288,20 @@ bool Core::setPixelFormat(enum retro_pixel_format data)
     switch (data)
     {
         case RETRO_PIXEL_FORMAT_0RGB1555:
+            pixelFormat = lrcpp::PixelFormat::XRGB1555;
+            return true;
+
         case RETRO_PIXEL_FORMAT_XRGB8888:
+            pixelFormat = lrcpp::PixelFormat::XRGB8888;
+            return true;
+
         case RETRO_PIXEL_FORMAT_RGB565:
-            pixelFormat = data;
+            pixelFormat = lrcpp::PixelFormat::RGB565;
             return true;
 
         case RETRO_PIXEL_FORMAT_UNKNOWN:
         default:
-            pixelFormat = RETRO_PIXEL_FORMAT_RGB565;
+            pixelFormat = lrcpp::PixelFormat::RGB565;
             return false;
     }
 }
@@ -377,16 +315,11 @@ bool Core::setInputDescriptors(const struct retro_input_descriptor *data)
     const size_t count = desc - data;
     inputDescriptors.resize(count);
 
-    for (size_t i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++, data++)
     {
-        inputDescriptors[i].port = data[i].port;
-        inputDescriptors[i].device = data[i].device;
-        inputDescriptors[i].index = data[i].index;
-        inputDescriptors[i].id = data[i].id;
-        inputDescriptors[i].description = data[i].description;
+        inputDescriptors[i] = *data;
     }
     
-    inputSetInputDescriptors(inputDescriptors);
     return true;
 }
 
@@ -410,7 +343,7 @@ bool Core::setHWRender(struct retro_hw_render_callback *data)
     data->get_current_framebuffer = staticGetCurrentFramebuffer;
     data->get_proc_address = staticGetProcAddress;
 
-    hardwareRenderCallback = *data;
+    hardwareRenderCallback = *data; // TODO do we need to keep this around?
     needsHardwareRender = true;
     return true;
 }
@@ -430,10 +363,9 @@ bool Core::setVariables(const struct retro_variable *data)
     const size_t count = var - data;
     variables.resize(count);
 
-    for (size_t i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++, data++)
     {
-        variables[i].key = data[i].key;
-        variables[i].value = data[i].value;
+        variables[i] = *data;
     }
 
     configSetVariables(variables);
@@ -460,37 +392,37 @@ bool Core::getLibretroPath(const char **data) const
 
 bool Core::setFrameTimeCallback(const struct retro_frame_time_callback *data)
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::setAudioCallback(const struct retro_audio_callback *data)
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::getRumbleInterface(struct retro_rumble_interface *data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::getInputDeviceCapabilities(uint64_t *data) const
 {
-    *data = (1 << RETRO_DEVICE_JOYPAD) | (1 << RETRO_DEVICE_ANALOG) | (1 << RETRO_DEVICE_MOUSE);
+    *data = 1 << RETRO_DEVICE_JOYPAD; // TODO support more devices
     return false;
 }
 
 bool Core::getSensorInterface(struct retro_sensor_interface *data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::getCameraInterface(struct retro_camera_callback *data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
@@ -502,13 +434,13 @@ bool Core::getLogInterface(struct retro_log_callback *data) const
 
 bool Core::getPerfInterface(struct retro_perf_callback *data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::getLocationInterface(struct retro_location_callback *data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
@@ -528,17 +460,17 @@ bool Core::setSystemAVInfo(const struct retro_system_av_info *data)
 {
     systemAVInfo = *data;
 
-    if (systemAVInfo.geometry.aspect_ratio <= 0.0f)
-        systemAVInfo.geometry.aspect_ratio = (float)systemAVInfo.geometry.base_width /
-                                             (float)systemAVInfo.geometry.base_height;
+    if (systemAVInfo.geometry.aspectRatio <= 0.0f)
+        systemAVInfo.geometry.aspectRatio = (float)systemAVInfo.geometry.baseWidth /
+                                            (float)systemAVInfo.geometry.baseHeight;
 
-    const struct retro_hw_render_callback *cb = needsHardwareRender ? &hardwareRenderCallback : NULL;
+    const lrcpp::HWRenderCallback *cb = needsHardwareRender ? &hardwareRenderCallback : NULL;
 
     try
     {
-        videoSetGeometry(systemAVInfo.geometry.base_width,
-                         systemAVInfo.geometry.base_height,
-                         systemAVInfo.geometry.aspect_ratio,
+        videoSetGeometry(systemAVInfo.geometry.baseWidth,
+                         systemAVInfo.geometry.baseHeight,
+                         systemAVInfo.geometry.aspectRatio,
                          pixelFormat,
                          cb);
     }
@@ -552,8 +484,8 @@ bool Core::setSystemAVInfo(const struct retro_system_av_info *data)
 
 bool Core::setProcAddressCallback(const struct retro_get_proc_address_interface *data)
 {
-  (void)data;
-  return false;
+    // TODO implement me!
+    return false;
 }
 
 bool Core::setSubsystemInfo(const struct retro_subsystem_info *data)
@@ -565,28 +497,8 @@ bool Core::setSubsystemInfo(const struct retro_subsystem_info *data)
     const size_t count = info - data;
     subsystemInfo.resize(count);
 
-    for (size_t i = 0; i < count; i++)
-    {
-        subsystemInfo[i].desc = data[i].desc;
-        subsystemInfo[i].ident = data[i].ident;
-        subsystemInfo[i].id = data[i].id;
-        subsystemInfo[i].roms.resize(data[i].num_roms);
-
-        for (size_t j = 0; j < data[i].num_roms; j++)
-        {
-            subsystemInfo[i].roms[j].desc = data[i].roms[j].desc;
-            subsystemInfo[i].roms[j].validExtensions = data[i].roms[j].valid_extensions;
-            subsystemInfo[i].roms[j].needFullpath = data[i].roms[j].need_fullpath;
-            subsystemInfo[i].roms[j].blockExtract = data[i].roms[j].block_extract;
-            subsystemInfo[i].roms[j].required = data[i].roms[j].required;
-            subsystemInfo[i].roms[j].memory.resize(data[i].roms[j].num_memory);
-
-            for (size_t k = 0; k < data[i].roms[j].num_memory; k++)
-            {
-                subsystemInfo[i].roms[j].memory[k].extension = data[i].roms[j].memory[k].extension;
-            }
-        }
-    }
+    for (size_t i = 0; i < count; i++, data++)
+        subsystemInfo[i] = *data;
 
     return true;
 }
@@ -599,66 +511,36 @@ bool Core::setControllerInfo(const struct retro_controller_info *data)
 
     const size_t count = info - data;
     controllerInfo.resize(count);
-    ports.resize(count);
 
-    for (size_t i = 0; i < count; i++)
-    {
-        controllerInfo[i].types.resize(data[i].num_types);
-
-        for (size_t j = 0; j < data[i].num_types; j++)
-        {
-            controllerInfo[i].types[j].desc = data[i].types[j].desc;
-            controllerInfo[i].types[j].id = data[i].types[j].id;
-        }
-
-        ports[i] = RETRO_DEVICE_NONE;
-    }
+    for (size_t i = 0; i < count; i++, data++)
+        controllerInfo[i] = *data;
 
     return true;
 }
 
 bool Core::setMemoryMaps(const struct retro_memory_map *data)
 {
-    memoryMap.descriptors.resize(data->num_descriptors);
-
-    for (size_t i = 0; i < data->num_descriptors; i++)
-    {
-        memoryMap.descriptors[i].flags = data->descriptors[i].flags;
-        memoryMap.descriptors[i].ptr = data->descriptors[i].ptr;
-        memoryMap.descriptors[i].offset = data->descriptors[i].offset;
-        memoryMap.descriptors[i].start = data->descriptors[i].start;
-        memoryMap.descriptors[i].select = data->descriptors[i].select;
-        memoryMap.descriptors[i].disconnect = data->descriptors[i].disconnect;
-        memoryMap.descriptors[i].len = data->descriptors[i].len;
-
-        if (data->descriptors[i].addrspace)
-            memoryMap.descriptors[i].addrspace = data->descriptors[i].addrspace;
-        else
-            memoryMap.descriptors[i].addrspace.clear();
-    }
-
+    memoryMap = *data;
     preprocessMemoryDescriptors();
 
-  return true;
+    return true;
 }
 
 bool Core::setGeometry(const struct retro_game_geometry *data)
 {
-    systemAVInfo.geometry.base_width = data->base_width;
-    systemAVInfo.geometry.base_height = data->base_height;
-    systemAVInfo.geometry.aspect_ratio = data->aspect_ratio;
+    systemAVInfo.geometry = *data;
 
-    if (systemAVInfo.geometry.aspect_ratio <= 0.0f)
-        systemAVInfo.geometry.aspect_ratio = (float)systemAVInfo.geometry.base_width /
-                                             (float)systemAVInfo.geometry.base_height;
+    if (systemAVInfo.geometry.aspectRatio <= 0.0f)
+        systemAVInfo.geometry.aspectRatio = (float)systemAVInfo.geometry.baseWidth /
+                                            (float)systemAVInfo.geometry.baseHeight;
 
-    const struct retro_hw_render_callback *cb = needsHardwareRender ? &hardwareRenderCallback : NULL;
+    const lrcpp::HWRenderCallback *cb = needsHardwareRender ? &hardwareRenderCallback : NULL;
 
     try
     {
-        videoSetGeometry(systemAVInfo.geometry.base_width,
-                         systemAVInfo.geometry.base_height,
-                         systemAVInfo.geometry.aspect_ratio,
+        videoSetGeometry(systemAVInfo.geometry.baseWidth,
+                         systemAVInfo.geometry.baseHeight,
+                         systemAVInfo.geometry.aspectRatio,
                          pixelFormat,
                          cb);
     }
@@ -672,25 +554,26 @@ bool Core::setGeometry(const struct retro_game_geometry *data)
 
 bool Core::getUsername(const char **data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::getLanguage(unsigned *data) const
 {
+    // TODO implement me!
     *data = RETRO_LANGUAGE_ENGLISH;
     return true;
 }
 
 bool Core::getCurrentSoftwareFramebuffer(struct retro_framebuffer *data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
 bool Core::getHWRenderInterface(const struct retro_hw_render_interface **data) const
 {
-    (void)data;
+    // TODO implement me!
     return false;
 }
 
@@ -860,7 +743,7 @@ int16_t Core::inputStateCallback(unsigned port, unsigned device, unsigned index,
 
 void Core::inputPollCallback()
 {
-    return inputPoll();
+    // Nothing to do
 }
 
 uintptr_t Core::getCurrentFramebuffer()
@@ -926,32 +809,10 @@ void Core::staticLogCallback(enum retro_log_level level, const char *fmt, ...)
     va_end(args);
 }
 
-bool Core::inputCtrlUpdated()
-{
-    // TODO implement me!
-    return false;
-}
-
-unsigned Core::inputGetController(unsigned port)
-{
-    // TODO implement me!
-    return RETRO_DEVICE_NONE;
-}
-
-void Core::inputSetInputDescriptors(const std::vector<InputDescriptor> &descs)
-{
-    // TODO implement me!
-}
-
 int16_t Core::inputRead(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-    // TODO implement me!
-    return 0;
-}
-
-void Core::inputPoll()
-{
-    // TODO implement me!
+    if (port < 8 && device < 7 && index < 3 && id < 17)
+        return ctrlState[port][device][index][id];
 }
 
 void Core::audioSetRate(double rate)
@@ -964,8 +825,8 @@ void Core::audioMix(const int16_t *samples, size_t frames)
     // TODO implement me!
 }
 
-void Core::videoSetGeometry(unsigned width, unsigned height, float aspect, enum retro_pixel_format pixelFormat,
-                                    const HWRenderCallback* hwRenderCallback)
+void Core::videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,
+                                    const lrcpp::HWRenderCallback* hwRenderCallback)
 {
     (void)width;
     (void)height;
@@ -1000,18 +861,18 @@ void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_
 
         switch (pixelFormat)
         {
-            case RETRO_PIXEL_FORMAT_XRGB8888:
+            case lrcpp::PixelFormat::XRGB8888:
                 format = PIXELFORMAT_RGBA8;
                 bpp = 4;
                 break;
 
-            case RETRO_PIXEL_FORMAT_RGB565:
+            case lrcpp::PixelFormat::RGB565:
                 format = PIXELFORMAT_RGB565;
                 bpp = 2;
                 break;
 
             default: // fallthrough
-            case RETRO_PIXEL_FORMAT_0RGB1555:
+            case lrcpp::PixelFormat::XRGB1555:
                 format = PIXELFORMAT_RGB5A1;
                 bpp = 2;
                 break;
@@ -1031,7 +892,7 @@ void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_
     const uint8_t *source = static_cast<const uint8_t*>(data);
     uint8_t *dest = scratchBuffer;
 
-    if (pixelFormat != RETRO_PIXEL_FORMAT_XRGB8888)
+    if (pixelFormat != lrcpp::PixelFormat::XRGB8888)
     {
         for (unsigned y = 0; y < height; y++)
         {
@@ -1106,7 +967,7 @@ const std::string &Core::configGetVariable(const std::string &variable)
     return value;
 }
 
-void Core::configSetVariables(const std::vector<Variable> &variables)
+void Core::configSetVariables(const std::vector<lrcpp::Variable> &variables)
 {
     // TODO implement me!
 }
@@ -1179,7 +1040,7 @@ bool Core::preprocessMemoryDescriptors()
 
     for (size_t i = 0; i < count; i++)
     {
-        MemoryDescriptor &desc = memoryMap.descriptors[i];
+        lrcpp::MemoryDescriptor &desc = memoryMap.descriptors[i];
 
         if (desc.select != 0)
             top_addr |= desc.select;
@@ -1191,7 +1052,7 @@ bool Core::preprocessMemoryDescriptors()
 
     for (size_t i = 0; i < count; i++)
     {
-        MemoryDescriptor &desc = memoryMap.descriptors[i];
+        lrcpp::MemoryDescriptor &desc = memoryMap.descriptors[i];
 
         if (desc.select == 0)
         {

@@ -29,6 +29,7 @@
 #include "graphics/Image.h"
 
 #include "CoreDll.h"
+#include "lrcpp.h"
 
 namespace love
 {
@@ -46,123 +47,10 @@ public:
 
     love::StrongRef<love::graphics::Image> &getImage();
     float getAspectRatio() const;
-
+    void setInput(unsigned port, unsigned device, unsigned index, unsigned id, int16_t value);
     void step();
 
-    unsigned getApiVersion();
-    unsigned getRegion();
-    void* getMemoryData(unsigned id);
-    size_t getMemorySize(unsigned id);
-    void resetGame();
-    size_t serializeSize();
-    bool serialize(void* data, size_t size);
-    bool unserialize(const void* data, size_t size);
-    
-    unsigned getPerformanceLevel();
-    enum retro_pixel_format getPixelFormat();
-    bool getNeedsHardwareRender();
-    bool getSupportsNoGame();
-    bool getSupportAchievements();
-    void unloadGame();
-
-    unsigned getNumDiscs();
-    unsigned getCurrentDiscIndex();
-    void setCurrentDiscIndex(unsigned);
-    bool getTrayOpen();
-    void setTrayOpen(bool open);
-
-    const struct retro_input_descriptor *getInputDescriptors(unsigned *count) const;
-    const struct retro_variable *getVariables(unsigned *count) const;
-    const struct retro_subsystem_info *getSubsystemInfo(unsigned *count) const;
-    const struct retro_controller_info *getControllerInfo(unsigned *count) const;
-    const struct retro_hw_render_callback *getHardwareRenderCallback() const;
-    const struct retro_system_info *getSystemInfo() const;
-    const struct retro_system_av_info *getSystemAVInfo() const;
-    const struct retro_memory_map *getMemoryMap() const;
-    
 protected:
-    struct InputDescriptor
-    {
-        unsigned port;
-        unsigned device;
-        unsigned index;
-        unsigned id;
-        std::string description;
-    };
-
-    struct Variable
-    {
-        std::string key;
-        std::string value;
-    };
-
-    typedef struct retro_hw_render_callback HWRenderCallback;
-
-    struct SystemInfo
-    {
-        std::string libraryName;
-        std::string libraryVersion;
-        std::string validExtensions;
-        bool needFullPath;
-        bool blockExtract;
-    };
-
-    typedef struct retro_system_av_info SystemAVInfo;
-
-    struct SubsystemMemoryInfo
-    {
-        std::string extension;
-        unsigned type;
-    };
-
-    struct SubsystemRomInfo
-    {
-        std::string desc;
-        std::string validExtensions;
-        bool needFullpath;
-        bool blockExtract;
-        bool required;
-        std::vector<SubsystemMemoryInfo> memory;
-    };
-
-    struct SubsystemInfo
-    {
-        std::string desc;
-        std::string ident;
-        std::vector<SubsystemRomInfo> roms;
-        unsigned id;
-    };
-
-    struct ControllerDescription
-    {
-        std::string desc;
-        unsigned id;
-    };
-
-    struct ControllerInfo
-    {
-        std::vector<ControllerDescription> types;
-    };
-
-    typedef struct retro_disk_control_callback DiskControlCallback;
-
-    struct MemoryDescriptor
-    {
-        uint64_t flags;
-        void *ptr;
-        size_t offset;
-        size_t start;
-        size_t select;
-        size_t disconnect;
-        size_t len;
-        std::string addrspace;
-    };
-
-    struct MemoryMap
-    {
-        std::vector<MemoryDescriptor> descriptors;
-    };
-
     // Environment functions
     bool setRotation(unsigned data);
     bool getOverscan(bool *data) const;
@@ -227,26 +115,24 @@ protected:
     static void staticLogCallback(enum retro_log_level level, const char *fmt, ...);
 
     // Input
-    bool inputCtrlUpdated();
-    unsigned inputGetController(unsigned port);
-    void inputSetInputDescriptors(const std::vector<InputDescriptor> &descs);
     int16_t inputRead(unsigned port, unsigned device, unsigned index, unsigned id);
-    void inputPoll();
+
+    int16_t ctrlState[8][7][3][17];
 
     // Audio
     void audioSetRate(double rate);
     void audioMix(const int16_t *samples, size_t frames);
 
     // Video
-    void videoSetGeometry(unsigned width, unsigned height, float aspect, enum retro_pixel_format pixelFormat,
-                          const HWRenderCallback* hwRenderCallback);
+    void videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,
+                          const lrcpp::HWRenderCallback* hwRenderCallback);
     void videoShowMessage(const char* msg, unsigned frames);
     bool videoSupportsContext(enum retro_hw_context_type type);
     void videoRefresh(const void* data, unsigned width, unsigned height, size_t pitch);
     uintptr_t videoGetCurrentFramebuffer();
     retro_proc_address_t videoGetProcAddress(const char *symbol);
 
-    enum retro_pixel_format pixelFormat;
+    lrcpp::PixelFormat pixelFormat;
     uint8_t *scratchBuffer;
     unsigned bpp;
     love::StrongRef<love::graphics::Image> image;
@@ -256,7 +142,7 @@ protected:
     const std::string &configGetCoreAssetsDirectory() const;
     const std::string &configGetSaveDirectory() const;
     const std::string &configGetVariable(const std::string &variable);
-    void configSetVariables(const std::vector<Variable> &variables);
+    void configSetVariables(const std::vector<lrcpp::Variable> &variables);
     bool configVarUpdated();
 
     // Log
@@ -274,24 +160,23 @@ protected:
     bool supportsNoGame;
     bool supportAchievements;
     
-    std::vector<InputDescriptor> inputDescriptors;
-    std::vector<Variable> variables;
+    std::vector<lrcpp::InputDescriptor> inputDescriptors;
+    std::vector<lrcpp::Variable> variables;
     
-    HWRenderCallback hardwareRenderCallback;
+    lrcpp::HWRenderCallback hardwareRenderCallback;
     bool needsHardwareRender;
     
-    SystemInfo systemInfo;
-    SystemAVInfo systemAVInfo;
+    lrcpp::SystemInfo systemInfo;
+    lrcpp::SystemAVInfo systemAVInfo;
     
-    std::vector<SubsystemInfo> subsystemInfo;
+    std::vector<lrcpp::SubsystemInfo> subsystemInfo;
     
-    std::vector<ControllerInfo> controllerInfo;
-    std::vector<unsigned> ports;
+    std::vector<lrcpp::ControllerInfo> controllerInfo;
 
     bool diskControlInterfaceSet;
-    DiskControlCallback diskControlInterface;
+    lrcpp::DiskControlCallback diskControlInterface;
 
-    MemoryMap memoryMap;
+    lrcpp::MemoryMap memoryMap;
 };
 
 } // libretro

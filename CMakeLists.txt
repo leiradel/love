@@ -1116,6 +1116,7 @@ set(LOVE_SRC_MODULE_LIBRETRO_CORE
 	src/modules/libretro/core/CoreDll.cpp
 	src/modules/libretro/core/CoreDll.h
 	src/modules/libretro/core/libretro.h
+	src/modules/libretro/core/lrcpp.h
 )
 
 set(LOVE_SRC_MODULE_LIBRETRO
