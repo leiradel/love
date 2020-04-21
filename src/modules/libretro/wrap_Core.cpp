@@ -209,6 +209,28 @@ int w_Core_getAspectRatio(lua_State *L)
 	return 1;
 }
 
+int w_Core_setControllerPortDevice(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+	lua_Integer port = luaL_checkinteger(L, 2);
+	lua_Integer idevice = luaL_optinteger(L, 3, -1);
+
+	if (port < 0 || port > 7)
+		return luaL_error(L, "port outside of valid range [0,7]");
+	
+	if (idevice == -1)
+	{
+		const char *device = luaL_checkstring(L, 3);
+		idevice = getDevice(device);
+
+		if (idevice == -1)
+			return luaL_error(L, "invalid device %s", device);
+	}
+
+	core->setControllerPortDevice(port, idevice);
+	return 0;
+}
+
 int w_Core_setInput(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
@@ -248,6 +270,7 @@ static const luaL_Reg core_functions[] =
     { "step", w_Core_step },
 	{ "getImage", w_Core_getImage },
 	{ "getAspectRatio", w_Core_getAspectRatio },
+	{ "setControllerPortDevice", w_Core_setControllerPortDevice },
 	{ "setInput", w_Core_setInput },
 	{ 0, 0 }
 };

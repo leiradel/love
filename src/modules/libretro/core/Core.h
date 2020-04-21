@@ -47,6 +47,7 @@ public:
 
     love::StrongRef<love::graphics::Image> &getImage();
     float getAspectRatio() const;
+    void setControllerPortDevice(unsigned port, unsigned device);
     void setInput(unsigned port, unsigned device, unsigned index, unsigned id, int16_t value);
     void step();
 

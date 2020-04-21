@@ -226,6 +226,11 @@ float Core::getAspectRatio() const
     return systemAVInfo.geometry.aspectRatio;
 }
 
+void Core::setControllerPortDevice(unsigned port, unsigned device)
+{
+    core.setControllerPortDevice(port, device);
+}
+
 void Core::setInput(unsigned port, unsigned device, unsigned index, unsigned id, int16_t value)
 {
     if (port < 8 && device < 7 && index < 3 && id < 17)
