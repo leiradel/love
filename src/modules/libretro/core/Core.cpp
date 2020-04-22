@@ -231,10 +231,69 @@ void Core::setControllerPortDevice(unsigned port, unsigned device)
     core.setControllerPortDevice(port, device);
 }
 
-void Core::setInput(unsigned port, unsigned device, unsigned index, unsigned id, int16_t value)
+bool Core::setInput(unsigned port, Input input, int16_t value)
 {
-    if (port < 8 && device < 7 && index < 3 && id < 17)
-        ctrlState[port][device][index][id] = value;
+    if (port < MaxPorts)
+    {
+        unsigned device = static_cast<unsigned>(input) >> 16;
+
+        if (device < MaxDevices)
+        {
+            unsigned index = static_cast<unsigned>(input) >> 8;
+
+            if (index < MaxIndices)
+            {
+                unsigned id = static_cast<unsigned>(input);
+
+                if (id < MaxIds)
+                {
+                    ctrlState[port][device][index][id] = value;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Core::setInput(unsigned port, Input input, unsigned index, int16_t value)
+{
+    if (port < MaxPorts && index < MaxIndices)
+    {
+        unsigned device = static_cast<unsigned>(input) >> 16;
+
+        if (device < MaxDevices)
+        {
+            unsigned id = static_cast<unsigned>(input);
+
+            if (id < MaxIds)
+            {
+                ctrlState[port][device][index][id] = value;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Core::setKey(unsigned port, unsigned key, bool pressed)
+{
+    if (port < MaxPorts && key < RETROK_LAST)
+    {
+        unsigned index = key >> 3;
+        unsigned bit = 1 << (key & 3);
+
+        if (pressed)
+            keyState[port][index] |= bit;
+        else
+            keyState[port][index] &= ~bit;
+        
+        return true;
+    }
+
+    return false;
 }
 
 void Core::step()
@@ -816,8 +875,10 @@ void Core::staticLogCallback(enum retro_log_level level, const char *fmt, ...)
 
 int16_t Core::inputRead(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-    if (port < 8 && device < 7 && index < 3 && id < 17)
+    if (port < MaxPorts && device < MaxDevices && index < MaxIndices && id < MaxIndices)
         return ctrlState[port][device][index][id];
+
+    return 0;
 }
 
 void Core::audioSetRate(double rate)
