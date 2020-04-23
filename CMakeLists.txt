@@ -1730,6 +1730,7 @@ set(LOVE_SRC_3P_SPEEX
 )
 
 add_library(love_3p_speex ${LOVE_SRC_3P_SPEEX})
+add_definitions(-DOUTSIDE_SPEEX -DRANDOM_PREFIX=speex -DEXPORT= -D_USE_SSE2 -DFIXED_POINT)
 
 set(LOVE_3P
 	love_3p_box2d
