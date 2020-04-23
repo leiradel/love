@@ -1720,10 +1720,6 @@ set(LOVE_SRC_3P_DYNLIB
 
 add_library(love_3p_dynlib ${LOVE_SRC_3P_DYNLIB})
 
-if (NOT MSVC)
-	target_link_libraries(${LOVE_LIB_NAME} dl)
-end()
-
 #
 # speex
 #
