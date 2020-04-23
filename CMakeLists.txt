@@ -1720,6 +1720,17 @@ set(LOVE_SRC_3P_DYNLIB
 
 add_library(love_3p_dynlib ${LOVE_SRC_3P_DYNLIB})
 
+#
+# speex
+#
+
+set(LOVE_SRC_3P_SPEEX
+	src/libraries/speex/resample.c
+	src/libraries/speex/speex_resampler.h
+)
+
+add_library(love_3p_speex ${LOVE_SRC_3P_SPEEX})
+
 set(LOVE_3P
 	love_3p_box2d
 	love_3p_ddsparse
@@ -1735,6 +1746,7 @@ set(LOVE_3P
 	love_3p_wuff
 	love_3p_xxhash
 	love_3p_dynlib
+	love_3p_speex
 )
 
 love_disable_warnings(love_3p_box2d love_3p_enet love_3p_luasocket love_3p_physfs)
