@@ -26,8 +26,7 @@
 #include "sound/Decoder.h"
 #include "thread/threads.h"
 
-#include "dr_flac/dr_flac.h"
-#include <string.h>
+#include "speex/speex_resampler.h"
 
 namespace love
 {
@@ -42,8 +41,8 @@ public:
 
     void reset();
 
-    void read(void* data, size_t size);
-    void write(const void* data, size_t size);
+    void read(void *data, size_t size);
+    void write(const void *data, size_t size);
 
     size_t size() { return bufsize; }
 
@@ -87,6 +86,11 @@ public:
 
 private:
     BufferedFifo<8192> samples;
+    double sampleRate;
+    double coreRate;
+    double rateControlDelta;
+    double currentRatio;
+    SpeexResamplerState *resampler;
 };
 
 } // libretro
