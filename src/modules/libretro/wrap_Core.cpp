@@ -135,6 +135,13 @@ int w_Core_getAspectRatio(lua_State *L)
 	return 1;
 }
 
+int w_Core_getDecoder(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    luax_pushtype<love::sound::Decoder>(L, core->getDecoder());
+    return 1;
+}
+
 int w_Core_setControllerPortDevice(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
@@ -185,6 +192,7 @@ static const luaL_Reg core_functions[] =
     {"step", w_Core_step},
 	{"getImage", w_Core_getImage},
 	{"getAspectRatio", w_Core_getAspectRatio},
+    {"getDecoder", w_Core_getDecoder},
 	{"setControllerPortDevice", w_Core_setControllerPortDevice},
 	{"setInput", w_Core_setInput},
 	{0, 0}

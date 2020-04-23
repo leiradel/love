@@ -67,13 +67,17 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
     InstanceSetter instance_setter(this);
 
     memset(ctrlState, 0, sizeof(ctrlState));
+    memset(keyState, 0, sizeof(keyState));
+
+    memset(samples, 0, sizeof(samples));
+    samplesCount = 0;
+    decoder = new love::libretro::Decoder();
 
     pixelFormat = lrcpp::PixelFormat::Unknown;
     scratchBuffer = nullptr;
     bpp = 0;
     image = nullptr;
 
-    samplesCount = 0;
     libretroPath = {};
     performanceLevel = 0;
     supportsNoGame = false;
@@ -89,8 +93,6 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
     diskControlInterfaceSet = false;
     diskControlInterface = {};
     memoryMap = {};
-
-    image = nullptr;
 
     struct retro_system_info system_info;
     core.getSystemInfo(&system_info);
@@ -224,6 +226,11 @@ love::StrongRef<love::graphics::Image> &Core::getImage()
 float Core::getAspectRatio() const
 {
     return systemAVInfo.geometry.aspectRatio;
+}
+
+love::StrongRef<love::libretro::Decoder> &Core::getDecoder()
+{
+    return decoder;
 }
 
 void Core::setControllerPortDevice(unsigned port, unsigned device)
@@ -894,12 +901,12 @@ int16_t Core::inputRead(unsigned port, unsigned device, unsigned index, unsigned
 
 void Core::audioSetRate(double rate)
 {
-    // TODO implement me!
+    decoder->setRate(rate);
 }
 
 void Core::audioMix(const int16_t *samples, size_t frames)
 {
-    // TODO implement me!
+    decoder->mix(samples, frames);
 }
 
 void Core::videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,

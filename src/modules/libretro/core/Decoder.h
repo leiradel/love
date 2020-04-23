@@ -72,11 +72,15 @@ private:
 class Decoder : public love::sound::Decoder
 {
 public:
-	Decoder(double sampleRate);
+	Decoder();
 	virtual ~Decoder();
+
+    void setRate(double rate);
+    void mix(const int16_t *samples, size_t frames);
 
 	love::sound::Decoder *clone();
 	int decode();
+    void *getBuffer() const;
 	bool seek(double s);
 	bool rewind();
 	bool isSeekable();
@@ -86,13 +90,20 @@ public:
 	double getDuration();
 
 private:
-    BufferedFifo<8192> samples;
+    enum
+    {
+        InBufferSize = 8192,
+        OutBufferSize = 1024
+    };
+
+    BufferedFifo<InBufferSize> samples;
     double sampleRate;
     double coreRate;
     double rateControlDelta;
     double currentRatio;
     double originalRatio;
     struct SpeexResamplerState_ *resampler;
+    uint8_t outBuffer[OutBufferSize];
 };
 
 } // libretro

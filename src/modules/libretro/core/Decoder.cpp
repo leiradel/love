@@ -26,6 +26,7 @@
 
 // LOVE
 #include "Decoder.h"
+#include "common/delay.h"
 
 // speex
 #define OUTSIDE_SPEEX
@@ -129,9 +130,9 @@ size_t Fifo::free()
     return count;
 }
 
-Decoder::Decoder(double sampleRate)
+Decoder::Decoder()
     : love::sound::Decoder(nullptr, 0)
-    , sampleRate(sampleRate)
+    , sampleRate(DEFAULT_SAMPLE_RATE)
     , coreRate(0.0)
     , rateControlDelta(0.005)
     , currentRatio(0.0)
@@ -145,6 +146,58 @@ Decoder::~Decoder()
         speex_resampler_destroy(resampler);
 }
 
+void Decoder::setRate(double rate)
+{
+    if (resampler != NULL)
+        speex_resampler_destroy(resampler);
+
+    coreRate = rate;
+    currentRatio = originalRatio = sampleRate / coreRate;
+
+    int error;
+    resampler = speex_resampler_init(2, coreRate, sampleRate, SPEEX_RESAMPLER_QUALITY_DEFAULT, &error);
+
+    if (resampler == nullptr)
+        throw love::Exception("Error creating resampler: %s", speex_resampler_strerror(error));
+}
+
+void Decoder::mix(const int16_t *data, size_t frames)
+{
+    size_t avail = samples.free();
+
+    /* Readjust the audio input rate. */
+    const int halfSize = (int) samples.size() / 2;
+    const int deltaMid = (int) avail - halfSize;
+    const double direction = (double) deltaMid / (double) halfSize;
+    const double adjust = 1.0 + rateControlDelta * direction;
+
+    currentRatio = originalRatio * adjust;
+
+    spx_uint32_t inLen = frames * 2;
+    spx_uint32_t outLen = (spx_uint32_t) (inLen * currentRatio);
+    outLen += outLen & 1; // request an even number of samples (stereo)
+    int16_t *output = (int16_t*)alloca(outLen * 2);
+
+    if (output == nullptr)
+        throw std::bad_alloc();
+
+    int error = speex_resampler_process_int(resampler, 0, data, &inLen, output, &outLen);
+
+    if (error != RESAMPLER_ERR_SUCCESS)
+        throw love::Exception("speex_resampler_process_int: %s", speex_resampler_strerror(error));
+
+    outLen &= ~1; // don't send incomplete audio frames
+    const size_t size = outLen * 2;
+
+    /*while (size > avail)
+    {
+        love::sleep(1);
+        avail = samples.free();
+    }*/
+
+    samples.write(output, std::min(size, avail));
+}
+
 love::sound::Decoder *Decoder::clone()
 {
     return nullptr;
@@ -152,7 +205,16 @@ love::sound::Decoder *Decoder::clone()
 
 int Decoder::decode()
 {
+    const size_t toRead = std::min(samples.occupied(), static_cast<size_t>(OutBufferSize));
+    samples.read(outBuffer, toRead);
+    return static_cast<int>(toRead);
+}
 
+void *Decoder::getBuffer() const
+{
+    // Source::streamAtomic() says this must return a pointer to the samples
+    // decoded in decode().
+    return const_cast<void*>(reinterpret_cast<const void*>(outBuffer));
 }
 
 bool Decoder::seek(double s)

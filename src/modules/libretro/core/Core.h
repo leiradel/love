@@ -29,6 +29,7 @@
 #include "graphics/Image.h"
 
 #include "CoreDll.h"
+#include "Decoder.h"
 #include "lrcpp.h"
 
 namespace love
@@ -133,10 +134,14 @@ public:
 
     love::StrongRef<love::graphics::Image> &getImage();
     float getAspectRatio() const;
+
+    love::StrongRef<love::libretro::Decoder> &getDecoder();
+
     void setControllerPortDevice(unsigned port, unsigned device);
     bool setInput(unsigned port, Input input, int16_t value);
     bool setInput(unsigned port, Input input, unsigned index, int16_t value);
     bool setKey(unsigned port, Input input, unsigned key, bool pressed);
+
     void step();
     
     static lrcpp::Device getDevice(Input input)
@@ -228,6 +233,10 @@ protected:
     void audioSetRate(double rate);
     void audioMix(const int16_t *samples, size_t frames);
 
+    int16_t samples[8192];
+    size_t samplesCount;
+    love::StrongRef<love::libretro::Decoder> decoder;
+
     // Video
     void videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,
                           const lrcpp::HWRenderCallback* hwRenderCallback);
@@ -257,9 +266,6 @@ protected:
 
     CoreDll core;
     
-    int16_t samples[8192];
-    size_t samplesCount;
-
     std::string libretroPath;
     unsigned performanceLevel;
     bool supportsNoGame;
