@@ -27,6 +27,14 @@
 // LOVE
 #include "Decoder.h"
 
+// speex
+#define OUTSIDE_SPEEX
+#define RANDOM_PREFIX speex
+#define EXPORT
+#define _USE_SSE2
+#define FIXED_POINT
+#include "speex/resample.c"
+
 namespace love
 {
 namespace libretro
@@ -119,6 +127,67 @@ size_t Fifo::free()
     mutex->unlock();
 
     return count;
+}
+
+Decoder::Decoder(double sampleRate)
+    : love::sound::Decoder(nullptr, 0)
+    , sampleRate(sampleRate)
+    , coreRate(0.0)
+    , rateControlDelta(0.005)
+    , currentRatio(0.0)
+    , originalRatio(0.0)
+    , resampler(nullptr)
+{}
+
+Decoder::~Decoder()
+{
+    if (resampler != nullptr)
+        speex_resampler_destroy(resampler);
+}
+
+love::sound::Decoder *Decoder::clone()
+{
+    return nullptr;
+}
+
+int Decoder::decode()
+{
+
+}
+
+bool Decoder::seek(double s)
+{
+    return false;
+}
+
+bool Decoder::rewind()
+{
+    return false;
+}
+
+bool Decoder::isSeekable()
+{
+    return false;
+}
+
+int Decoder::getChannelCount() const
+{
+    return 2;
+}
+
+int Decoder::getBitDepth() const
+{
+    return 16;
+}
+
+int Decoder::getSampleRate() const
+{
+    return currentRatio;
+}
+
+double Decoder::getDuration()
+{
+    return 0.0;
 }
 
 } // libretro

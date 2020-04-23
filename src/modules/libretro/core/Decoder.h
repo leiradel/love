@@ -26,7 +26,8 @@
 #include "sound/Decoder.h"
 #include "thread/threads.h"
 
-#include "speex/speex_resampler.h"
+// speex
+struct SpeexResamplerState_;
 
 namespace love
 {
@@ -71,7 +72,7 @@ private:
 class Decoder : public love::sound::Decoder
 {
 public:
-	Decoder();
+	Decoder(double sampleRate);
 	virtual ~Decoder();
 
 	love::sound::Decoder *clone();
@@ -90,7 +91,8 @@ private:
     double coreRate;
     double rateControlDelta;
     double currentRatio;
-    SpeexResamplerState *resampler;
+    double originalRatio;
+    struct SpeexResamplerState_ *resampler;
 };
 
 } // libretro
