@@ -24,7 +24,7 @@
 // LOVE
 #include "common/Data.h"
 #include "sound/Decoder.h"
-#include "threads.h"
+#include "thread/threads.h"
 
 #include "dr_flac/dr_flac.h"
 #include <string.h>
