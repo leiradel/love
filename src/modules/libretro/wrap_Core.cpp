@@ -18,84 +18,96 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
+// LOVE
 #include "wrap_Core.h"
+
+// libc
+#include "string.h"
 
 namespace love
 {
 namespace libretro
 {
 
-StringMap<Core::Input, (unsigned) Core::Input::COUNT>::Entry inputEntries[] =
+static bool getInput(const char *name, Core::Input &input)
 {
-    { "none",                Core::Input::NONE                  },
-    { "joypadb",             Core::Input::JOYPAD_B              },
-    { "joypady",             Core::Input::JOYPAD_Y              },
-    { "joypadselect",        Core::Input::JOYPAD_SELECT         },
-    { "joypadstart",         Core::Input::JOYPAD_START          },
-    { "joypadup",            Core::Input::JOYPAD_UP             },
-    { "joypaddown",          Core::Input::JOYPAD_DOWN           },
-    { "joypadleft",          Core::Input::JOYPAD_LEFT           },
-    { "joypadright",         Core::Input::JOYPAD_RIGHT          },
-    { "joypada",             Core::Input::JOYPAD_A              },
-    { "joypadx",             Core::Input::JOYPAD_X              },
-    { "joypadl",             Core::Input::JOYPAD_L              },
-    { "joypadr",             Core::Input::JOYPAD_R              },
-    { "joypadl2",            Core::Input::JOYPAD_L2             },
-    { "joypadr2",            Core::Input::JOYPAD_R2             },
-    { "joypadl3",            Core::Input::JOYPAD_L3             },
-    { "joypadr3",            Core::Input::JOYPAD_R3             },
-    { "analogleftx",         Core::Input::ANALOG_LEFT_X         },
-    { "analoglefty",         Core::Input::ANALOG_LEFT_Y         },
-    { "analogrightx",        Core::Input::ANALOG_RIGHT_X        },
-    { "analogrighty",        Core::Input::ANALOG_RIGHT_Y        },
-    { "analogb",             Core::Input::ANALOG_B              },
-    { "analogy",             Core::Input::ANALOG_Y              },
-    { "analogselect",        Core::Input::ANALOG_SELECT         },
-    { "analogstart",         Core::Input::ANALOG_START          },
-    { "analogup",            Core::Input::ANALOG_UP             },
-    { "analogdown",          Core::Input::ANALOG_DOWN           },
-    { "analogleft",          Core::Input::ANALOG_LEFT           },
-    { "analogright",         Core::Input::ANALOG_RIGHT          },
-    { "analoga",             Core::Input::ANALOG_A              },
-    { "analogx",             Core::Input::ANALOG_X              },
-    { "analogl",             Core::Input::ANALOG_L              },
-    { "analogr",             Core::Input::ANALOG_R              },
-    { "analogl2",            Core::Input::ANALOG_L2             },
-    { "analogr2",            Core::Input::ANALOG_R2             },
-    { "analogl3",            Core::Input::ANALOG_L3             },
-    { "analogr3",            Core::Input::ANALOG_R3             },
-    { "mousex",              Core::Input::MOUSE_X               },
-    { "mousey",              Core::Input::MOUSE_Y               },
-    { "mouseleft",           Core::Input::MOUSE_LEFT            },
-    { "mouseright",          Core::Input::MOUSE_RIGHT           },
-    { "mousewheelup",        Core::Input::MOUSE_WHEELUP         },
-    { "mousewheeldown",      Core::Input::MOUSE_WHEELDOWN       },
-    { "mousemiddle",         Core::Input::MOUSE_MIDDLE          },
-    { "mousehorizwheelup",   Core::Input::MOUSE_HORIZ_WHEELUP   },
-    { "mousehorizwheeldown", Core::Input::MOUSE_HORIZ_WHEELDOWN },
-    { "mousebutton4",        Core::Input::MOUSE_BUTTON_4        },
-    { "mousebutton5",        Core::Input::MOUSE_BUTTON_5        },
-    { "keyboard",            Core::Input::KEYBOARD              },
-    { "lightgunscreenx",     Core::Input::LIGHTGUN_SCREEN_X     },
-    { "lightgunscreeny",     Core::Input::LIGHTGUN_SCREEN_y     },
-    { "lightgunisoffscreen", Core::Input::LIGHTGUN_IS_OFFSCREEN },
-    { "lightguntrigger",     Core::Input::LIGHTGUN_TRIGGER      },
-    { "lightgunreload",      Core::Input::LIGHTGUN_RELOAD       },
-    { "lightgunauxa",        Core::Input::LIGHTGUN_AUX_A        },
-    { "lightgunauxb",        Core::Input::LIGHTGUN_AUX_B        },
-    { "lightgunstart",       Core::Input::LIGHTGUN_START        },
-    { "lightgunselect",      Core::Input::LIGHTGUN_SELECT       },
-    { "lightgunauxc",        Core::Input::LIGHTGUN_AUX_C        },
-    { "lightgundpadup",      Core::Input::LIGHTGUN_DPAD_UP      },
-    { "lightgundpaddown",    Core::Input::LIGHTGUN_DPAD_DOWN    },
-    { "lightgundpadleft",    Core::Input::LIGHTGUN_DPAD_LEFT    },
-    { "lightgundpadright",   Core::Input::LIGHTGUN_DPAD_RIGHT   },
-    { "pointerx",            Core::Input::POINTER_X             },
-    { "pointery",            Core::Input::POINTER_Y             },
-    { "pointerpressed",      Core::Input::POINTER_PRESSED       }
-};
+    uint32_t hash = 5381;
 
-StringMap<Core::Input, (unsigned) Core::Input::COUNT> inputs(inputEntries, sizeof(inputEntries));
+    for (const uint8_t *str = (const uint8_t*) name; *str != 0; str++)
+        hash = hash * 33 + *str;
+
+    switch (hash)
+    {
+        case UINT32_C(0x7c9b47f5): input = Core::Input::NONE; return strcmp(name, "none") == 0;
+        case UINT32_C(0xef160c6e): input = Core::Input::JOYPAD_B; return strcmp(name, "joypadb") == 0;
+        case UINT32_C(0xef160c85): input = Core::Input::JOYPAD_Y; return strcmp(name, "joypady") == 0;
+        case UINT32_C(0xfa5d528c): input = Core::Input::JOYPAD_SELECT; return strcmp(name, "joypadselect") == 0;
+        case UINT32_C(0x6c777bba): input = Core::Input::JOYPAD_START; return strcmp(name, "joypadstart") == 0;
+        case UINT32_C(0xd1d79d11): input = Core::Input::JOYPAD_UP; return strcmp(name, "joypadup") == 0;
+        case UINT32_C(0xa629de64): input = Core::Input::JOYPAD_DOWN; return strcmp(name, "joypaddown") == 0;
+        case UINT32_C(0xa62e14b7): input = Core::Input::JOYPAD_LEFT; return strcmp(name, "joypadleft") == 0;
+        case UINT32_C(0x6c5f734a): input = Core::Input::JOYPAD_RIGHT; return strcmp(name, "joypadright") == 0;
+        case UINT32_C(0xef160c6d): input = Core::Input::JOYPAD_A; return strcmp(name, "joypada") == 0;
+        case UINT32_C(0xef160c84): input = Core::Input::JOYPAD_X; return strcmp(name, "joypadx") == 0;
+        case UINT32_C(0xef160c78): input = Core::Input::JOYPAD_L; return strcmp(name, "joypadl") == 0;
+        case UINT32_C(0xef160c7e): input = Core::Input::JOYPAD_R; return strcmp(name, "joypadr") == 0;
+        case UINT32_C(0xd1d79baa): input = Core::Input::JOYPAD_L2; return strcmp(name, "joypadl2") == 0;
+        case UINT32_C(0xd1d79c70): input = Core::Input::JOYPAD_R2; return strcmp(name, "joypadr2") == 0;
+        case UINT32_C(0xd1d79bab): input = Core::Input::JOYPAD_L3; return strcmp(name, "joypadl3") == 0;
+        case UINT32_C(0xd1d79c71): input = Core::Input::JOYPAD_R3; return strcmp(name, "joypadr3") == 0;
+        case UINT32_C(0x57a09c7a): input = Core::Input::ANALOG_LEFT_X; return strcmp(name, "analogleftx") == 0;
+        case UINT32_C(0x57a09c7b): input = Core::Input::ANALOG_LEFT_Y; return strcmp(name, "analoglefty") == 0;
+        case UINT32_C(0x59fbdacd): input = Core::Input::ANALOG_RIGHT_X; return strcmp(name, "analogrightx") == 0;
+        case UINT32_C(0x59fbdace): input = Core::Input::ANALOG_RIGHT_Y; return strcmp(name, "analogrighty") == 0;
+        case UINT32_C(0x36407f59): input = Core::Input::ANALOG_B; return strcmp(name, "analogb") == 0;
+        case UINT32_C(0x36407f70): input = Core::Input::ANALOG_Y; return strcmp(name, "analogy") == 0;
+        case UINT32_C(0x5c0b5057): input = Core::Input::ANALOG_SELECT; return strcmp(name, "analogselect") == 0;
+        case UINT32_C(0x58276c25): input = Core::Input::ANALOG_START; return strcmp(name, "analogstart") == 0;
+        case UINT32_C(0xfe506d5c): input = Core::Input::ANALOG_UP; return strcmp(name, "analogup") == 0;
+        case UINT32_C(0xd417ed6f): input = Core::Input::ANALOG_DOWN; return strcmp(name, "analogdown") == 0;
+        case UINT32_C(0xd41c23c2): input = Core::Input::ANALOG_LEFT; return strcmp(name, "analogleft") == 0;
+        case UINT32_C(0x580f63b5): input = Core::Input::ANALOG_RIGHT; return strcmp(name, "analogright") == 0;
+        case UINT32_C(0x36407f58): input = Core::Input::ANALOG_A; return strcmp(name, "analoga") == 0;
+        case UINT32_C(0x36407f6f): input = Core::Input::ANALOG_X; return strcmp(name, "analogx") == 0;
+        case UINT32_C(0x36407f63): input = Core::Input::ANALOG_L; return strcmp(name, "analogl") == 0;
+        case UINT32_C(0x36407f69): input = Core::Input::ANALOG_R; return strcmp(name, "analogr") == 0;
+        case UINT32_C(0xfe506bf5): input = Core::Input::ANALOG_L2; return strcmp(name, "analogl2") == 0;
+        case UINT32_C(0xfe506cbb): input = Core::Input::ANALOG_R2; return strcmp(name, "analogr2") == 0;
+        case UINT32_C(0xfe506bf6): input = Core::Input::ANALOG_L3; return strcmp(name, "analogl3") == 0;
+        case UINT32_C(0xfe506cbc): input = Core::Input::ANALOG_R3; return strcmp(name, "analogr3") == 0;
+        case UINT32_C(0x0e3c1046): input = Core::Input::MOUSE_X; return strcmp(name, "mousex") == 0;
+        case UINT32_C(0x0e3c1047): input = Core::Input::MOUSE_Y; return strcmp(name, "mousey") == 0;
+        case UINT32_C(0x3da39939): input = Core::Input::MOUSE_LEFT; return strcmp(name, "mouseleft") == 0;
+        case UINT32_C(0xf285880c): input = Core::Input::MOUSE_RIGHT; return strcmp(name, "mouseright") == 0;
+        case UINT32_C(0x286fd988): input = Core::Input::MOUSE_WHEELUP; return strcmp(name, "mousewheelup") == 0;
+        case UINT32_C(0x03c3149b): input = Core::Input::MOUSE_WHEELDOWN; return strcmp(name, "mousewheeldown") == 0;
+        case UINT32_C(0x378b079d): input = Core::Input::MOUSE_MIDDLE; return strcmp(name, "mousemiddle") == 0;
+        case UINT32_C(0x7a806e34): input = Core::Input::MOUSE_HORIZ_WHEELUP; return strcmp(name, "mousehorizwheelup") == 0;
+        case UINT32_C(0x1c4b8447): input = Core::Input::MOUSE_HORIZ_WHEELDOWN; return strcmp(name, "mousehorizwheeldown") == 0;
+        case UINT32_C(0xf753a2be): input = Core::Input::MOUSE_BUTTON_4; return strcmp(name, "mousebutton4") == 0;
+        case UINT32_C(0xf753a2bf): input = Core::Input::MOUSE_BUTTON_5; return strcmp(name, "mousebutton5") == 0;
+        case UINT32_C(0xbb5d5b76): input = Core::Input::KEYBOARD; return strcmp(name, "keyboard") == 0;
+        case UINT32_C(0xedc591ff): input = Core::Input::LIGHTGUN_SCREEN_X; return strcmp(name, "lightgunscreenx") == 0;
+        case UINT32_C(0xedc59200): input = Core::Input::LIGHTGUN_SCREEN_Y; return strcmp(name, "lightgunscreeny") == 0;
+        case UINT32_C(0x8b6b3c7e): input = Core::Input::LIGHTGUN_IS_OFFSCREEN; return strcmp(name, "lightgunisoffscreen") == 0;
+        case UINT32_C(0x5d1b73bb): input = Core::Input::LIGHTGUN_TRIGGER; return strcmp(name, "lightguntrigger") == 0;
+        case UINT32_C(0x4ad1e4be): input = Core::Input::LIGHTGUN_RELOAD; return strcmp(name, "lightgunreload") == 0;
+        case UINT32_C(0xc48f00b6): input = Core::Input::LIGHTGUN_AUX_A; return strcmp(name, "lightgunauxa") == 0;
+        case UINT32_C(0xc48f00b7): input = Core::Input::LIGHTGUN_AUX_B; return strcmp(name, "lightgunauxb") == 0;
+        case UINT32_C(0x57b3e4f5): input = Core::Input::LIGHTGUN_START; return strcmp(name, "lightgunstart") == 0;
+        case UINT32_C(0x4d26e327): input = Core::Input::LIGHTGUN_SELECT; return strcmp(name, "lightgunselect") == 0;
+        case UINT32_C(0xc48f00b8): input = Core::Input::LIGHTGUN_AUX_C; return strcmp(name, "lightgunauxc") == 0;
+        case UINT32_C(0x2aea8525): input = Core::Input::LIGHTGUN_DPAD_UP; return strcmp(name, "lightgundpadup") == 0;
+        case UINT32_C(0x8f971b78): input = Core::Input::LIGHTGUN_DPAD_DOWN; return strcmp(name, "lightgundpaddown") == 0;
+        case UINT32_C(0x8f9b51cb): input = Core::Input::LIGHTGUN_DPAD_LEFT; return strcmp(name, "lightgundpadleft") == 0;
+        case UINT32_C(0x837452de): input = Core::Input::LIGHTGUN_DPAD_RIGHT; return strcmp(name, "lightgundpadright") == 0;
+        case UINT32_C(0x35f64e5e): input = Core::Input::POINTER_X; return strcmp(name, "pointerx") == 0;
+        case UINT32_C(0x35f64e5f): input = Core::Input::POINTER_Y; return strcmp(name, "pointery") == 0;
+        case UINT32_C(0x8259ff9c): input = Core::Input::POINTER_PRESSED; return strcmp(name, "pointerpressed") == 0;
+    }
+
+    return false;
+}
 
 Core *luax_checkcore(lua_State *L, int idx)
 {
@@ -132,9 +144,6 @@ int w_Core_setControllerPortDevice(lua_State *L)
 	if (port < 0 || port >= Core::MaxPorts)
 		return luaL_error(L, "port outside of valid range [0,%d]", Core::MaxPorts - 1);
 	
-	if (device < 0 || device >= Core::MaxDevices)
-		return luaL_error(L, "device outside of valid range [0,%d]", Core::MaxDevices - 1);
-
 	core->setControllerPortDevice(port, device);
 	return 0;
 }
@@ -147,8 +156,8 @@ int w_Core_setInput(lua_State *L)
 	Core::Input input;
 	const char *inputStr = luaL_checkstring(L, 3);
 
-	if (inputs.find(inputStr, input))
-		return luax_enumerror(L, "core input", inputs.getNames(), inputStr);
+	if (!getInput(inputStr, input))
+		return luaL_error(L, "Invalid core input '%s'", inputStr);
 	
 	// TODO deal with keyboard
 
@@ -157,7 +166,7 @@ int w_Core_setInput(lua_State *L)
 		int value = (int) luaL_checkinteger(L, 4);
 			
 		if (!core->setInput(port, input, value))
-			return luaL_error(L, "invalid input");
+			return luaL_error(L, "Invalid core input '%s'", inputStr);
 	}
 	else
 	{
@@ -165,7 +174,7 @@ int w_Core_setInput(lua_State *L)
 		int value = (int) luaL_checkinteger(L, 5);
 			
 		if (!core->setInput(port, input, index, value))
-			return luaL_error(L, "invalid input");
+			return luaL_error(L, "Invalid core input '%s' with index %d", inputStr, index);
 	}
 
 	return 0;

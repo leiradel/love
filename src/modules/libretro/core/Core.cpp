@@ -235,19 +235,22 @@ bool Core::setInput(unsigned port, Input input, int16_t value)
 {
     if (port < MaxPorts)
     {
-        unsigned device = static_cast<unsigned>(input) >> 16;
+        lrcpp::Device device = getDevice(input);
+        unsigned udev = static_cast<unsigned>(device);
 
-        if (device < MaxDevices)
+        if (udev < MaxDevices && device != lrcpp::Device::Pointer)
         {
-            unsigned index = static_cast<unsigned>(input) >> 8;
+            lrcpp::DeviceIndex index = getDeviceIndex(input);
+            unsigned uidx = static_cast<unsigned>(index);
 
-            if (index < MaxIndices)
+            if (uidx < MaxIndices)
             {
-                unsigned id = static_cast<unsigned>(input);
+                lrcpp::DeviceId id = getDeviceId(input);
+                unsigned uid = static_cast<unsigned>(id);
 
-                if (id < MaxIds)
+                if (uid < MaxIds)
                 {
-                    ctrlState[port][device][index][id] = value;
+                    ctrlState[port][udev][uidx][uid] = value;
                     return true;
                 }
             }
@@ -261,15 +264,17 @@ bool Core::setInput(unsigned port, Input input, unsigned index, int16_t value)
 {
     if (port < MaxPorts && index < MaxIndices)
     {
-        unsigned device = static_cast<unsigned>(input) >> 16;
+        lrcpp::Device device = getDevice(input);
+        unsigned udev = static_cast<unsigned>(device);
 
-        if (device < MaxDevices)
+        if (udev < MaxDevices && device == lrcpp::Device::Pointer)
         {
-            unsigned id = static_cast<unsigned>(input);
+            lrcpp::DeviceId id = getDeviceId(input);
+            unsigned uid = static_cast<unsigned>(id);
 
-            if (id < MaxIds)
+            if (uid < MaxIds)
             {
-                ctrlState[port][device][index][id] = value;
+                ctrlState[port][udev][index][uid] = value;
                 return true;
             }
         }
@@ -278,19 +283,25 @@ bool Core::setInput(unsigned port, Input input, unsigned index, int16_t value)
     return false;
 }
 
-bool Core::setKey(unsigned port, unsigned key, bool pressed)
+bool Core::setKey(unsigned port, Input input, unsigned key, bool pressed)
 {
     if (port < MaxPorts && key < RETROK_LAST)
     {
-        unsigned index = key >> 3;
-        unsigned bit = 1 << (key & 3);
+        lrcpp::Device device = getDevice(input);
+        unsigned udev = static_cast<unsigned>(device);
 
-        if (pressed)
-            keyState[port][index] |= bit;
-        else
-            keyState[port][index] &= ~bit;
-        
-        return true;
+        if (udev < MaxDevices && device == lrcpp::Device::Keyboard)
+        {
+            unsigned index = key >> 3;
+            unsigned bit = 1 << (key & 3);
+
+            if (pressed)
+                keyState[port][index] |= bit;
+            else
+                keyState[port][index] &= ~bit;
+            
+            return true;
+        }
     }
 
     return false;

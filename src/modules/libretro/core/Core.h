@@ -18,8 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
-#ifndef LOVE_LIBRETRO_LIBRETROCORE_H
-#define LOVE_LIBRETRO_LIBRETROCORE_H
+#ifndef LOVE_LIBRETRO_CORE_H
+#define LOVE_LIBRETRO_CORE_H
 
 // STL
 #include <vector>
@@ -50,77 +50,83 @@ public:
         MaxIds = 17,
     };
 
+#define MKINPUT1(dev) (static_cast<uint32_t>(lrcpp::Device::dev) << 16)
+#define MKINPUT2(dev, id) (MKINPUT1(dev) | static_cast<uint32_t>(lrcpp::DeviceId::id))
+#define MKINPUT3(dev, idx, id) (MKINPUT2(dev, id) | static_cast<uint32_t>(lrcpp::DeviceIndex::idx) << 8)
+
     enum class Input
     {
-        NONE = RETRO_DEVICE_NONE << 16,
-        JOYPAD_B = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_B,
-        JOYPAD_Y = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_Y,
-        JOYPAD_SELECT = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_SELECT,
-        JOYPAD_START = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_START,
-        JOYPAD_UP = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_UP,
-        JOYPAD_DOWN = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_DOWN,
-        JOYPAD_LEFT = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_LEFT,
-        JOYPAD_RIGHT = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_RIGHT,
-        JOYPAD_A = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_A,
-        JOYPAD_X = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_X,
-        JOYPAD_L = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_L,
-        JOYPAD_R = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_R,
-        JOYPAD_L2 = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_L2,
-        JOYPAD_R2 = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_R2,
-        JOYPAD_L3 = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_L3,
-        JOYPAD_R3 = RETRO_DEVICE_JOYPAD << 16 | RETRO_DEVICE_ID_JOYPAD_R3,
-        ANALOG_LEFT_X = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_LEFT << 8 | RETRO_DEVICE_ID_ANALOG_X,
-        ANALOG_LEFT_Y = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_LEFT << 8 | RETRO_DEVICE_ID_ANALOG_Y,
-        ANALOG_RIGHT_X = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_RIGHT << 8 | RETRO_DEVICE_ID_ANALOG_X,
-        ANALOG_RIGHT_Y = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_RIGHT << 8 | RETRO_DEVICE_ID_ANALOG_Y,
-        ANALOG_B = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_B,
-        ANALOG_Y = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_Y,
-        ANALOG_SELECT = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_SELECT,
-        ANALOG_START = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_START,
-        ANALOG_UP = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_UP,
-        ANALOG_DOWN = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_DOWN,
-        ANALOG_LEFT = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_LEFT,
-        ANALOG_RIGHT = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_RIGHT,
-        ANALOG_A = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_A,
-        ANALOG_X = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_X,
-        ANALOG_L = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_L,
-        ANALOG_R = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_R,
-        ANALOG_L2 = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_L2,
-        ANALOG_R2 = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_R2,
-        ANALOG_L3 = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_L3,
-        ANALOG_R3 = RETRO_DEVICE_ANALOG << 16 | RETRO_DEVICE_INDEX_ANALOG_BUTTON << 8 | RETRO_DEVICE_ID_JOYPAD_R3,
-        MOUSE_X = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_X,
-        MOUSE_Y = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_Y,
-        MOUSE_LEFT = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_LEFT,
-        MOUSE_RIGHT = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_RIGHT,
-        MOUSE_WHEELUP = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_WHEELUP,
-        MOUSE_WHEELDOWN = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_WHEELDOWN,
-        MOUSE_MIDDLE = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_MIDDLE,
-        MOUSE_HORIZ_WHEELUP = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP,
-        MOUSE_HORIZ_WHEELDOWN = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN,
-        MOUSE_BUTTON_4 = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_BUTTON_4,
-        MOUSE_BUTTON_5 = RETRO_DEVICE_MOUSE << 16 | RETRO_DEVICE_ID_MOUSE_BUTTON_5,
-        KEYBOARD = RETRO_DEVICE_KEYBOARD << 16,
-        LIGHTGUN_SCREEN_X = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X,
-        LIGHTGUN_SCREEN_y = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y,
-        LIGHTGUN_IS_OFFSCREEN = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN,
-        LIGHTGUN_TRIGGER = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_TRIGGER,
-        LIGHTGUN_RELOAD = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_RELOAD,
-        LIGHTGUN_AUX_A = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_AUX_A,
-        LIGHTGUN_AUX_B = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_AUX_B,
-        LIGHTGUN_START = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_START,
-        LIGHTGUN_SELECT = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_SELECT,
-        LIGHTGUN_AUX_C = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_AUX_C,
-        LIGHTGUN_DPAD_UP = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP,
-        LIGHTGUN_DPAD_DOWN = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN,
-        LIGHTGUN_DPAD_LEFT = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT,
-        LIGHTGUN_DPAD_RIGHT = RETRO_DEVICE_LIGHTGUN << 16 | RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT,
-        POINTER_X = RETRO_DEVICE_POINTER << 16 | RETRO_DEVICE_ID_POINTER_X,
-        POINTER_Y = RETRO_DEVICE_POINTER << 16 | RETRO_DEVICE_ID_POINTER_Y,
-        POINTER_PRESSED = RETRO_DEVICE_POINTER << 16 | RETRO_DEVICE_ID_POINTER_PRESSED,
-        // Count
-        COUNT = 66
+        NONE                  = MKINPUT1(None),
+        JOYPAD_B              = MKINPUT2(Joypad, JoypadB),
+        JOYPAD_Y              = MKINPUT2(Joypad, JoypadY),
+        JOYPAD_SELECT         = MKINPUT2(Joypad, JoypadSelect),
+        JOYPAD_START          = MKINPUT2(Joypad, JoypadStart),
+        JOYPAD_UP             = MKINPUT2(Joypad, JoypadUp),
+        JOYPAD_DOWN           = MKINPUT2(Joypad, JoypadDown),
+        JOYPAD_LEFT           = MKINPUT2(Joypad, JoypadLeft),
+        JOYPAD_RIGHT          = MKINPUT2(Joypad, JoypadRight),
+        JOYPAD_A              = MKINPUT2(Joypad, JoypadA),
+        JOYPAD_X              = MKINPUT2(Joypad, JoypadX),
+        JOYPAD_L              = MKINPUT2(Joypad, JoypadL),
+        JOYPAD_R              = MKINPUT2(Joypad, JoypadR),
+        JOYPAD_L2             = MKINPUT2(Joypad, JoypadL2),
+        JOYPAD_R2             = MKINPUT2(Joypad, JoypadR2),
+        JOYPAD_L3             = MKINPUT2(Joypad, JoypadL3),
+        JOYPAD_R3             = MKINPUT2(Joypad, JoypadR3),
+        ANALOG_LEFT_X         = MKINPUT3(Analog, AnalogLeft, AnalogX),
+        ANALOG_LEFT_Y         = MKINPUT3(Analog, AnalogLeft, AnalogY),
+        ANALOG_RIGHT_X        = MKINPUT3(Analog, AnalogRight, AnalogX),
+        ANALOG_RIGHT_Y        = MKINPUT3(Analog, AnalogRight, AnalogY),
+        ANALOG_B              = MKINPUT3(Analog, AnalogButton, JoypadB),
+        ANALOG_Y              = MKINPUT3(Analog, AnalogButton, JoypadY),
+        ANALOG_SELECT         = MKINPUT3(Analog, AnalogButton, JoypadSelect),
+        ANALOG_START          = MKINPUT3(Analog, AnalogButton, JoypadStart),
+        ANALOG_UP             = MKINPUT3(Analog, AnalogButton, JoypadUp),
+        ANALOG_DOWN           = MKINPUT3(Analog, AnalogButton, JoypadDown),
+        ANALOG_LEFT           = MKINPUT3(Analog, AnalogButton, JoypadLeft),
+        ANALOG_RIGHT          = MKINPUT3(Analog, AnalogButton, JoypadRight),
+        ANALOG_A              = MKINPUT3(Analog, AnalogButton, JoypadA),
+        ANALOG_X              = MKINPUT3(Analog, AnalogButton, JoypadX),
+        ANALOG_L              = MKINPUT3(Analog, AnalogButton, JoypadL),
+        ANALOG_R              = MKINPUT3(Analog, AnalogButton, JoypadR),
+        ANALOG_L2             = MKINPUT3(Analog, AnalogButton, JoypadL2),
+        ANALOG_R2             = MKINPUT3(Analog, AnalogButton, JoypadR2),
+        ANALOG_L3             = MKINPUT3(Analog, AnalogButton, JoypadL3),
+        ANALOG_R3             = MKINPUT3(Analog, AnalogButton, JoypadR3),
+        MOUSE_X               = MKINPUT2(Mouse, MouseX),
+        MOUSE_Y               = MKINPUT2(Mouse, MouseY),
+        MOUSE_LEFT            = MKINPUT2(Mouse, MouseLeft),
+        MOUSE_RIGHT           = MKINPUT2(Mouse, MouseRight),
+        MOUSE_WHEELUP         = MKINPUT2(Mouse, MouseWheelup),
+        MOUSE_WHEELDOWN       = MKINPUT2(Mouse, MouseWheeldown),
+        MOUSE_MIDDLE          = MKINPUT2(Mouse, MouseMiddle),
+        MOUSE_HORIZ_WHEELUP   = MKINPUT2(Mouse, MouseHorizWheelup),
+        MOUSE_HORIZ_WHEELDOWN = MKINPUT2(Mouse, MouseHorizWheeldown),
+        MOUSE_BUTTON_4        = MKINPUT2(Mouse, MouseButton4),
+        MOUSE_BUTTON_5        = MKINPUT2(Mouse, MouseButton5),
+        KEYBOARD              = MKINPUT1(Keyboard),
+        LIGHTGUN_SCREEN_X     = MKINPUT2(Lightgun, LightgunScreenX),
+        LIGHTGUN_SCREEN_Y     = MKINPUT2(Lightgun, LightgunScreenY),
+        LIGHTGUN_IS_OFFSCREEN = MKINPUT2(Lightgun, LightgunIsOffscreen),
+        LIGHTGUN_TRIGGER      = MKINPUT2(Lightgun, LightgunTrigger),
+        LIGHTGUN_RELOAD       = MKINPUT2(Lightgun, LightgunReload),
+        LIGHTGUN_AUX_A        = MKINPUT2(Lightgun, LightgunAuxA),
+        LIGHTGUN_AUX_B        = MKINPUT2(Lightgun, LightgunAuxB),
+        LIGHTGUN_START        = MKINPUT2(Lightgun, LightgunStart),
+        LIGHTGUN_SELECT       = MKINPUT2(Lightgun, LightgunSelect),
+        LIGHTGUN_AUX_C        = MKINPUT2(Lightgun, LightgunAuxC),
+        LIGHTGUN_DPAD_UP      = MKINPUT2(Lightgun, LightgunDpadUp),
+        LIGHTGUN_DPAD_DOWN    = MKINPUT2(Lightgun, LightgunDpadDown),
+        LIGHTGUN_DPAD_LEFT    = MKINPUT2(Lightgun, LightgunDpadLeft),
+        LIGHTGUN_DPAD_RIGHT   = MKINPUT2(Lightgun, LightgunDpadRight),
+        POINTER_X             = MKINPUT2(Pointer, PointerX),
+        POINTER_Y             = MKINPUT2(Pointer, PointerY),
+        POINTER_PRESSED       = MKINPUT2(Pointer, PointerPressed),
     };
+
+#undef MKINPUT1
+#undef MKINPUT2
+#undef MKINPUT3
 
     Core(const std::string& corePath, const std::string &gamePath);
 	virtual ~Core();
@@ -130,8 +136,23 @@ public:
     void setControllerPortDevice(unsigned port, unsigned device);
     bool setInput(unsigned port, Input input, int16_t value);
     bool setInput(unsigned port, Input input, unsigned index, int16_t value);
-    bool setKey(unsigned port, unsigned key, bool pressed);
+    bool setKey(unsigned port, Input input, unsigned key, bool pressed);
     void step();
+    
+    static lrcpp::Device getDevice(Input input)
+    {
+        return static_cast<lrcpp::Device>((static_cast<uint32_t>(input) >> 16) & 0xff);
+    }
+
+    static lrcpp::DeviceIndex getDeviceIndex(Input input)
+    {
+        return static_cast<lrcpp::DeviceIndex>((static_cast<uint32_t>(input) >> 8) & 0xff);
+    }
+
+    static lrcpp::DeviceId getDeviceId(Input input)
+    {
+        return static_cast<lrcpp::DeviceId>(static_cast<uint32_t>(input) & 0xff);
+    }
 
 protected:
     // Environment functions
@@ -266,4 +287,4 @@ protected:
 } // libretro
 } // love
 
-#endif // LOVE_LIBRETRO_LIBRETROCORE_H
+#endif // LOVE_LIBRETRO_CORE_H
