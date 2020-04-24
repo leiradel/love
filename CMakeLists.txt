@@ -1115,6 +1115,8 @@ set(LOVE_SRC_MODULE_LIBRETRO_CORE
 	src/modules/libretro/core/Core.h
 	src/modules/libretro/core/CoreDll.cpp
 	src/modules/libretro/core/CoreDll.h
+	src/modules/libretro/core/Decoder.cpp
+	src/modules/libretro/core/Decoder.h
 	src/modules/libretro/core/libretro.h
 	src/modules/libretro/core/lrcpp.h
 )
@@ -1719,6 +1721,7 @@ set(LOVE_SRC_3P_DYNLIB
 )
 
 add_library(love_3p_dynlib ${LOVE_SRC_3P_DYNLIB})
+target_link_libraries(love_3p_dynlib ${CMAKE_DL_LIBS})
 
 set(LOVE_3P
 	love_3p_box2d
