@@ -1719,6 +1719,7 @@ set(LOVE_SRC_3P_DYNLIB
 )
 
 add_library(love_3p_dynlib ${LOVE_SRC_3P_DYNLIB})
+target_link_libraries(love_3p_dynlib ${CMAKE_DL_LIBS})
 
 set(LOVE_3P
 	love_3p_box2d
