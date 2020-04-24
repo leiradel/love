@@ -1719,7 +1719,6 @@ set(LOVE_SRC_3P_DYNLIB
 )
 
 add_library(love_3p_dynlib ${LOVE_SRC_3P_DYNLIB})
-target_link_libraries(love_3p_dynlib ${CMAKE_DL_LIBS})
 
 set(LOVE_3P
 	love_3p_box2d
@@ -1793,7 +1792,7 @@ if(MSVC)
 endif()
 
 add_library(${LOVE_LIB_NAME} SHARED ${LOVE_LIB_SRC} ${LOVE_RC})
-target_link_libraries(${LOVE_LIB_NAME} ${LOVE_LINK_LIBRARIES} ${LOVE_3P})
+target_link_libraries(${LOVE_LIB_NAME} ${LOVE_LINK_LIBRARIES} ${LOVE_3P} ${CMAKE_DL_LIBS})
 
 if(LOVE_EXTRA_DEPENDECIES)
 	add_dependencies(${LOVE_LIB_NAME} ${LOVE_EXTRA_DEPENDECIES})
