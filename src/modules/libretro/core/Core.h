@@ -27,9 +27,9 @@
 // LOVE
 #include "common/Module.h"
 #include "graphics/Image.h"
+#include "audio/Audio.h"
 
 #include "CoreDll.h"
-#include "Decoder.h"
 #include "lrcpp.h"
 
 namespace love
@@ -135,8 +135,6 @@ public:
     love::StrongRef<love::graphics::Image> &getImage();
     float getAspectRatio() const;
 
-    love::StrongRef<love::libretro::Decoder> &getDecoder();
-
     void setControllerPortDevice(unsigned port, unsigned device);
     bool setInput(unsigned port, Input input, int16_t value);
     bool setInput(unsigned port, Input input, unsigned index, int16_t value);
@@ -233,9 +231,9 @@ protected:
     void audioSetRate(double rate);
     void audioMix(const int16_t *samples, size_t frames);
 
-    int16_t samples[8192];
+    int16_t samples[16384];
     size_t samplesCount;
-    love::StrongRef<love::libretro::Decoder> decoder;
+    love::audio::Source* source;
 
     // Video
     void videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,

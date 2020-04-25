@@ -71,7 +71,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
 
     memset(samples, 0, sizeof(samples));
     samplesCount = 0;
-    decoder = new love::libretro::Decoder();
+    source = nullptr;
 
     pixelFormat = lrcpp::PixelFormat::Unknown;
     scratchBuffer = nullptr;
@@ -216,6 +216,7 @@ Core::~Core()
     core.unloadGame();
     core.deinit();
     delete[] scratchBuffer;
+    delete source;
 }
 
 love::StrongRef<love::graphics::Image> &Core::getImage()
@@ -226,11 +227,6 @@ love::StrongRef<love::graphics::Image> &Core::getImage()
 float Core::getAspectRatio() const
 {
     return systemAVInfo.geometry.aspectRatio;
-}
-
-love::StrongRef<love::libretro::Decoder> &Core::getDecoder()
-{
-    return decoder;
 }
 
 void Core::setControllerPortDevice(unsigned port, unsigned device)
@@ -901,16 +897,25 @@ int16_t Core::inputRead(unsigned port, unsigned device, unsigned index, unsigned
 
 void Core::audioSetRate(double rate)
 {
-    decoder->setRate(rate);
+    delete source;
+
+    auto audio = Module::getInstance<love::audio::Audio>(Module::M_AUDIO);
+    source = audio->newSource(rate, 16, 2, 8);
 }
 
 void Core::audioMix(const int16_t *samples, size_t frames)
 {
-    decoder->mix(samples, frames);
+    if (source->getFreeBufferCount() != 0)
+    {
+        source->queue((void*)samples, frames * 4, systemAVInfo.timing.sampleRate, 16, 2);
+
+        if (!source->isPlaying())
+            source->play();
+    }
 }
 
 void Core::videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,
-                                    const lrcpp::HWRenderCallback* hwRenderCallback)
+                            const lrcpp::HWRenderCallback* hwRenderCallback)
 {
     (void)width;
     (void)height;
