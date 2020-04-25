@@ -1066,7 +1066,18 @@ bool Core::configVarUpdated()
 
 void Core::logVprintf(enum retro_log_level level, const char* fmt, va_list args)
 {
-    // TODO implement me!
+    const char *tag = "???";
+
+    switch (level)
+    {
+        case RETRO_LOG_DEBUG: tag = "DBG"; break;
+        case RETRO_LOG_INFO:  tag = "NFO"; break;
+        case RETRO_LOG_WARN:  tag = "WRN"; break;
+        case RETRO_LOG_ERROR: tag = "ERR"; break;
+    }
+
+    fprintf(stderr, "[%s] ", tag);
+    vfprintf(stderr, fmt, args);
 }
 
 static size_t addBitsDown(size_t n)
