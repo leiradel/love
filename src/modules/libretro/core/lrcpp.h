@@ -381,7 +381,7 @@ struct MemoryDescriptor
         select = value.select;
         disconnect = value.disconnect;
         len = value.len;
-        addrSpace = value.addrspace;
+        addrSpace = value.addrspace ? value.addrspace : "";
     }
 
     uint64_t flags;
