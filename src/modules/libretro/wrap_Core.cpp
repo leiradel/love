@@ -366,6 +366,7 @@ static const luaL_Reg core_functions[] =
 	{"getAspectRatio", w_Core_getAspectRatio},
 	{"setControllerPortDevice", w_Core_setControllerPortDevice},
 	{"setInput", w_Core_setInput},
+	{"setKey", w_Core_setKey},
 	{0, 0}
 };
 
