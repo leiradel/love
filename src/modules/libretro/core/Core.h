@@ -140,7 +140,7 @@ public:
     void setControllerPortDevice(unsigned port, unsigned device);
     bool setInput(unsigned port, Input input, int16_t value);
     bool setInput(unsigned port, Input input, unsigned index, int16_t value);
-    bool setKey(unsigned port, Input input, unsigned key, bool pressed);
+    bool setKey(unsigned port, Input input, lrcpp::Key key, bool pressed);
 
     void step();
     

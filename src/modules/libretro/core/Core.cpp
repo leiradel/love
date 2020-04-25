@@ -283,14 +283,15 @@ bool Core::setInput(unsigned port, Input input, unsigned index, int16_t value)
 
 bool Core::setKey(unsigned port, Input input, lrcpp::Key key, bool pressed)
 {
-    if (port < MaxPorts && key < RETROK_LAST)
+    unsigned ukey = static_cast<unsigned>(key);
+
+    if (port < MaxPorts && ukey < RETROK_LAST)
     {
         lrcpp::Device device = getDevice(input);
         unsigned udev = static_cast<unsigned>(device);
 
         if (udev < MaxDevices && device == lrcpp::Device::Keyboard)
         {
-            unsigned ukey = static_cast<unsigned>(key);
             unsigned index = ukey >> 3;
             unsigned bit = 1 << (ukey & 3);
 
