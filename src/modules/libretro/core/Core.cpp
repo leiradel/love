@@ -98,12 +98,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
 
     struct retro_system_info system_info;
     core.getSystemInfo(&system_info);
-
-    systemInfo.libraryName = system_info.library_name;
-    systemInfo.libraryVersion = system_info.library_version;
-    systemInfo.validExtensions = system_info.valid_extensions != NULL ? system_info.valid_extensions : "";
-    systemInfo.needFullPath  = system_info.need_fullpath;
-    systemInfo.blockExtract = system_info.block_extract;
+    systemInfo = system_info;
 
     core.setEnvironment(staticEnvironmentCallback);
     core.init();
@@ -195,9 +190,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
             audioSetRate(systemAVInfo.timing.sampleRate);
 
             for (size_t i = 0; i < controllerInfo.size(); i++)
-            {
                 core.setControllerPortDevice(i, RETRO_DEVICE_NONE);
-            }
         }
         catch (std::exception &e)
         {
