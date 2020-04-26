@@ -318,6 +318,11 @@ void Core::step()
         audioMix(samples, samplesCount / 2);
 }
 
+const std::vector<lrcpp::Variable> &Core::getVariables() const
+{
+    return variables;
+}
+
 bool Core::setRotation(unsigned data)
 {
     // TODO implement me!
@@ -443,7 +448,6 @@ bool Core::setVariables(const struct retro_variable *data)
         variables[i] = *data;
     }
 
-    configSetVariables(variables);
     return true;
 }
 
@@ -1051,11 +1055,6 @@ const std::string &Core::configGetVariable(const std::string &variable)
     // TODO implement me!
     static const std::string value = "";
     return value;
-}
-
-void Core::configSetVariables(const std::vector<lrcpp::Variable> &variables)
-{
-    // TODO implement me!
 }
 
 bool Core::configVarUpdated()

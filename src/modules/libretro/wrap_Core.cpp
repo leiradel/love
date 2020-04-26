@@ -359,6 +359,25 @@ int w_Core_setKey(lua_State *L)
 	return 0;
 }
 
+int w_Core_getVariables(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    const auto &variables = core->getVariables();
+
+    if (lua_istable(L, 2))
+        lua_pushvalue(L, 2);
+    else
+        lua_createtable(L, 0, variables.size());
+
+    for (const auto &var : variables)
+    {
+        lua_pushstring(L, var.value.c_str());
+        lua_setfield(L, -2, var.key.c_str());
+    }
+
+    return 1;
+}
+
 static const luaL_Reg core_functions[] =
 {
     {"step", w_Core_step},
@@ -367,6 +386,7 @@ static const luaL_Reg core_functions[] =
 	{"setControllerPortDevice", w_Core_setControllerPortDevice},
 	{"setInput", w_Core_setInput},
 	{"setKey", w_Core_setKey},
+    {"getVariables", w_Core_getVariables},
 	{0, 0}
 };
 

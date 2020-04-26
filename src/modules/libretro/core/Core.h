@@ -144,6 +144,8 @@ public:
 
     void step();
     
+    const std::vector<lrcpp::Variable> &getVariables() const;
+
     static lrcpp::Device getDevice(Input input)
     {
         return static_cast<lrcpp::Device>((static_cast<uint32_t>(input) >> 16) & 0xff);
@@ -256,7 +258,6 @@ protected:
     const std::string &configGetCoreAssetsDirectory() const;
     const std::string &configGetSaveDirectory() const;
     const std::string &configGetVariable(const std::string &variable);
-    void configSetVariables(const std::vector<lrcpp::Variable> &variables);
     bool configVarUpdated();
 
     // Log
