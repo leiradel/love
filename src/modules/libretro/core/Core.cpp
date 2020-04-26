@@ -219,11 +219,6 @@ love::StrongRef<love::graphics::Image> &Core::getImage()
     return image;
 }
 
-float Core::getAspectRatio() const
-{
-    return systemAVInfo.geometry.aspectRatio;
-}
-
 void Core::setControllerPortDevice(unsigned port, unsigned device)
 {
     core.setControllerPortDevice(port, device);
@@ -316,11 +311,6 @@ void Core::step()
 
     if (samplesCount > 0)
         audioMix(samples, samplesCount / 2);
-}
-
-const std::vector<lrcpp::Variable> &Core::getVariables() const
-{
-    return variables;
 }
 
 bool Core::setRotation(unsigned data)
@@ -423,7 +413,7 @@ bool Core::setHWRender(struct retro_hw_render_callback *data)
     data->get_current_framebuffer = staticGetCurrentFramebuffer;
     data->get_proc_address = staticGetProcAddress;
 
-    hardwareRenderCallback = *data; // TODO do we need to keep this around?
+    hardwareRenderCallback = *data;
     needsHardwareRender = true;
     return true;
 }

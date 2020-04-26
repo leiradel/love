@@ -135,7 +135,6 @@ public:
 	virtual ~Core();
 
     love::StrongRef<love::graphics::Image> &getImage();
-    float getAspectRatio() const;
 
     void setControllerPortDevice(unsigned port, unsigned device);
     bool setInput(unsigned port, Input input, int16_t value);
@@ -144,7 +143,8 @@ public:
 
     void step();
     
-    const std::vector<lrcpp::Variable> &getVariables() const;
+    const std::vector<lrcpp::Variable> &getVariables() const { return variables; }
+    const lrcpp::SystemAVInfo &getSystemAVInfo() const { return systemAVInfo; }
 
     static lrcpp::Device getDevice(Input input)
     {

@@ -265,33 +265,26 @@ static bool getKey(const char *name, lrcpp::Key &key)
     return false;
 }
 
-Core *luax_checkcore(lua_State *L, int idx)
+static Core *luax_checkcore(lua_State *L, int idx)
 {
 	return luax_checktype<Core>(L, idx);
 }
 
-int w_Core_step(lua_State *L)
+static int w_Core_step(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
     core->step();
     return 0;
 }
 
-int w_Core_getImage(lua_State *L)
+static int w_Core_getImage(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
     luax_pushtype<love::graphics::Image>(L, core->getImage());
     return 1;
 }
 
-int w_Core_getAspectRatio(lua_State *L)
-{
-	auto core = luax_checkcore(L, 1);
-	lua_pushnumber(L, core->getAspectRatio());
-	return 1;
-}
-
-int w_Core_setControllerPortDevice(lua_State *L)
+static int w_Core_setControllerPortDevice(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
 	int port = (int) luaL_checkinteger(L, 2);
@@ -304,7 +297,7 @@ int w_Core_setControllerPortDevice(lua_State *L)
 	return 0;
 }
 
-int w_Core_setInput(lua_State *L)
+static int w_Core_setInput(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
 	int port = (int) luaL_checkinteger(L, 2);
@@ -334,7 +327,7 @@ int w_Core_setInput(lua_State *L)
 	return 0;
 }
 
-int w_Core_setKey(lua_State *L)
+static int w_Core_setKey(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
 	int port = (int) luaL_checkinteger(L, 2);
@@ -359,7 +352,7 @@ int w_Core_setKey(lua_State *L)
 	return 0;
 }
 
-int w_Core_getVariables(lua_State *L)
+static int w_Core_getVariables(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
     const auto &variables = core->getVariables();
@@ -378,15 +371,66 @@ int w_Core_getVariables(lua_State *L)
     return 1;
 }
 
+static int w_Core_getSystemAVInfo(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    const auto &info = core->getSystemAVInfo();
+
+    if (lua_istable(L, 2))
+        lua_pushvalue(L, 2);
+    else
+        lua_createtable(L, 0, 2);
+
+    lua_getfield(L, -1, "geometry");
+
+    if (!lua_istable(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_createtable(L, 0, 5);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -3, "geometry");
+    }
+
+    lua_pushinteger(L, info.geometry.baseWidth);
+    lua_setfield(L, -2, "baseWidth");
+    lua_pushinteger(L, info.geometry.baseHeight);
+    lua_setfield(L, -2, "baseHeight");
+    lua_pushinteger(L, info.geometry.maxWidth);
+    lua_setfield(L, -2, "maxWidth");
+    lua_pushinteger(L, info.geometry.maxHeight);
+    lua_setfield(L, -2, "maxHeight");
+    lua_pushnumber(L, info.geometry.aspectRatio);
+    lua_setfield(L, -2, "aspectRatio");
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "timing");
+
+    if (!lua_istable(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_createtable(L, 0, 2);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -3, "timing");
+    }
+
+    lua_pushnumber(L, info.timing.fps);
+    lua_setfield(L, -2, "fps");
+    lua_pushnumber(L, info.timing.sampleRate);
+    lua_setfield(L, -2, "sampleRate");
+    lua_pop(L, 1);
+
+    return 1;
+}
+
 static const luaL_Reg core_functions[] =
 {
     {"step", w_Core_step},
 	{"getImage", w_Core_getImage},
-	{"getAspectRatio", w_Core_getAspectRatio},
 	{"setControllerPortDevice", w_Core_setControllerPortDevice},
 	{"setInput", w_Core_setInput},
 	{"setKey", w_Core_setKey},
     {"getVariables", w_Core_getVariables},
+    {"getSystemAVInfo", w_Core_getSystemAVInfo},
 	{0, 0}
 };
 
