@@ -136,6 +136,7 @@ public:
 
     love::StrongRef<love::graphics::Image> &getImage();
 
+    void setControllerPortDevice(unsigned port, lrcpp::Device device);
     void setControllerPortDevice(unsigned port, unsigned device);
     bool setInput(unsigned port, Input input, int16_t value);
     bool setInput(unsigned port, Input input, unsigned index, int16_t value);
@@ -146,6 +147,8 @@ public:
     void step();
     
     const std::vector<lrcpp::Variable> &getVariables() const { return variables; }
+    const std::vector<lrcpp::InputDescriptor> &getInputDescriptors() const { return inputDescriptors; }
+    const std::vector<lrcpp::ControllerInfo> &getControllerInfo() const { return controllerInfo; }
     const lrcpp::SystemAVInfo &getSystemAVInfo() const { return systemAVInfo; }
 
     static lrcpp::Device getDevice(Input input)
@@ -228,8 +231,6 @@ protected:
     static void staticLogCallback(enum retro_log_level level, const char *fmt, ...);
 
     // Input
-    int16_t inputRead(unsigned port, unsigned device, unsigned index, unsigned id);
-
     int16_t ctrlState[MaxPorts][MaxDevices][MaxIndices][MaxIds];
     uint8_t keyState[MaxPorts][(RETROK_LAST + 7) / 8];
 

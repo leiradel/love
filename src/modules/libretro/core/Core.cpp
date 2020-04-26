@@ -221,6 +221,11 @@ love::StrongRef<love::graphics::Image> &Core::getImage()
     return image;
 }
 
+void Core::setControllerPortDevice(unsigned port, lrcpp::Device device)
+{
+    core.setControllerPortDevice(port, static_cast<unsigned>(device));
+}
+
 void Core::setControllerPortDevice(unsigned port, unsigned device)
 {
     core.setControllerPortDevice(port, device);
@@ -290,7 +295,7 @@ bool Core::setKey(unsigned port, Input input, lrcpp::Key key, bool pressed)
         if (udev < MaxDevices && device == lrcpp::Device::Keyboard)
         {
             unsigned index = ukey >> 3;
-            unsigned bit = 1 << (ukey & 3);
+            unsigned bit = 1 << (ukey & 7);
 
             if (pressed)
                 keyState[port][index] |= bit;
@@ -863,7 +868,21 @@ void Core::audioSampleCallback(int16_t left, int16_t right)
 
 int16_t Core::inputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-    return inputRead(port, device, index, id);
+    device &= RETRO_DEVICE_MASK;
+
+    if (port < MaxPorts && device < MaxDevices && index < MaxIndices)
+        if (static_cast<lrcpp::Device>(device) != lrcpp::Device::Keyboard)
+        {
+            if (id < MaxIndices)
+                return ctrlState[port][device][index][id];
+        }
+        else
+        {
+            if (id < RETROK_LAST)
+                return (keyState[port][id >> 3] & (1 << (id & 7))) != 0 ? 32767 : 0;
+        }
+
+    return 0;
 }
 
 void Core::inputPollCallback()
@@ -932,14 +951,6 @@ void Core::staticLogCallback(enum retro_log_level level, const char *fmt, ...)
     va_start(args, fmt);
     s_instance->logVprintf(level, fmt, args);
     va_end(args);
-}
-
-int16_t Core::inputRead(unsigned port, unsigned device, unsigned index, unsigned id)
-{
-    if (port < MaxPorts && device < MaxDevices && index < MaxIndices && id < MaxIndices)
-        return ctrlState[port][device][index][id];
-
-    return 0;
 }
 
 void Core::audioSetRate(double rate)

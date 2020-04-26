@@ -41,9 +41,22 @@ static uint32_t djb2(const char *name)
     return hash;
 }
 
+static bool getDevice(const char *name, lrcpp::Device &device)
+{
+    switch (djb2(name))
+    {
+        case UINT32_C(0x7c9b47f5): device = lrcpp::Device::None; return strcmp(name, "none") == 0;
+        case UINT32_C(0x073eba8c): device = lrcpp::Device::Joypad; return strcmp(name, "joypad") == 0;
+        case UINT32_C(0x0ff24e0e): device = lrcpp::Device::Mouse; return strcmp(name, "mouse") == 0;
+        case UINT32_C(0xbb5d5b76): device = lrcpp::Device::Keyboard; return strcmp(name, "keyboard") == 0;
+        case UINT32_C(0xb1fab2e7): device = lrcpp::Device::Lightgun; return strcmp(name, "lightgun") == 0;
+        case UINT32_C(0xf220fc17): device = lrcpp::Device::Analog; return strcmp(name, "analog") == 0;
+        case UINT32_C(0xbbd12926): device = lrcpp::Device::Pointer; return strcmp(name, "pointer") == 0;
+    }
+}
+
 static bool getInput(const char *name, Core::Input &input)
 {
-
     switch (djb2(name))
     {
         case UINT32_C(0x7c9b47f5): input = Core::Input::NONE; return strcmp(name, "none") == 0;
@@ -287,20 +300,34 @@ static int w_Core_getImage(lua_State *L)
 static int w_Core_setControllerPortDevice(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
-	int port = (int) luaL_checkinteger(L, 2);
-	int device = (int) luaL_checkinteger(L, 3);
+	int port = (int) luaL_checkinteger(L, 2) - 1;
 
 	if (port < 0 || port >= Core::MaxPorts)
-		return luaL_error(L, "port outside of valid range [0,%d]", Core::MaxPorts - 1);
+		return luaL_error(L, "Port outside of valid range [0,%d]", Core::MaxPorts - 1);
 	
-	core->setControllerPortDevice(port, device);
+    if (lua_isnumber(L, 3))
+    {
+        int device = (int) luaL_checkinteger(L, 3);
+        core->setControllerPortDevice(port, device);
+    }
+    else
+    {
+        lrcpp::Device device;
+        const char *deviceStr = luaL_checkstring(L, 3);
+
+        if (!getDevice(deviceStr, device))
+            return luaL_error(L, "Unknown device '%s'", deviceStr);
+
+        core->setControllerPortDevice(port, device);
+    }
+
 	return 0;
 }
 
 static int w_Core_setInput(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
-	int port = (int) luaL_checkinteger(L, 2);
+	int port = (int) luaL_checkinteger(L, 2) - 1;
 
 	Core::Input input;
 	const char *inputStr = luaL_checkstring(L, 3);
@@ -330,7 +357,7 @@ static int w_Core_setInput(lua_State *L)
 static int w_Core_setKey(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
-	int port = (int) luaL_checkinteger(L, 2);
+	int port = (int) luaL_checkinteger(L, 2) - 1;
 
 	Core::Input input;
 	const char *inputStr = luaL_checkstring(L, 3);
@@ -344,7 +371,7 @@ static int w_Core_setKey(lua_State *L)
 	if (!getKey(keyStr, key))
 		return luaL_error(L, "Invalid key '%s'", keyStr);
 	
-    int pressed = (int) luaL_checkinteger(L, 5);
+    int pressed = lua_toboolean(L, 5);
 
     if (!core->setKey(port, input, key, pressed != 0))
         return luaL_error(L, "Invalid key '%s'", keyStr);
@@ -382,6 +409,82 @@ static int w_Core_getVariables(lua_State *L)
         lua_setfield(L, -2, var.key.c_str());
     }
 
+    return 1;
+}
+
+static int w_Core_getInputDescriptors(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    const auto &descs = core->getInputDescriptors();
+
+    if (lua_istable(L, 2))
+        lua_pushvalue(L, 2);
+    else
+        lua_createtable(L, descs.size(), 0);
+
+    int index = 1;
+
+    for (const auto &desc : descs)
+    {
+        lua_createtable(L, 0, 5);
+
+        lua_pushinteger(L, desc.port + 1);
+        lua_setfield(L, -2, "port");
+        lua_pushinteger(L, desc.device);
+        lua_setfield(L, -2, "device");
+        lua_pushinteger(L, desc.index);
+        lua_setfield(L, -2, "index");
+        lua_pushinteger(L, desc.id);
+        lua_setfield(L, -2, "id");
+        lua_pushstring(L, desc.description.c_str());
+        lua_setfield(L, -2, "description");
+
+        lua_rawseti(L, -2, index++);
+    }
+
+    return 1;
+}
+
+static int w_Core_getControllerInfo(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    const auto &infos = core->getControllerInfo();
+
+    if (lua_istable(L, 2))
+        lua_pushvalue(L, 2);
+    else
+        lua_createtable(L, infos.size(), 0);
+    
+    const size_t count = infos.size();
+
+    for (size_t i = 0; i < count; i++)
+    {
+        const auto &info = infos[i];
+        lua_rawgeti(L, -1, i + 1);
+
+        if (!lua_istable(L, -1))
+        {
+            lua_pop(L, 1);
+            lua_createtable(L, info.types.size(), 0);
+            lua_pushvalue(L, -1);
+            lua_rawseti(L, -3, i + 1);
+        }
+
+        const size_t count2 = info.types.size();
+
+        for (size_t j = 0; j < count2; j++)
+        {
+            const auto &desc = info.types[j];
+
+            lua_pushinteger(L, desc.id);
+            lua_setfield(L, -2, desc.desc.c_str());
+        }
+
+        lua_pop(L, 1);
+    }
+
+    lua_pushnil(L);
+    lua_rawseti(L, -2, count + 1);
     return 1;
 }
 
@@ -445,6 +548,8 @@ static const luaL_Reg core_functions[] =
 	{"setKey", w_Core_setKey},
 	{"setVariable", w_Core_setVariable},
     {"getVariables", w_Core_getVariables},
+    {"getInputDescriptors", w_Core_getInputDescriptors},
+    {"getControllerInfo", w_Core_getControllerInfo},
     {"getSystemAVInfo", w_Core_getSystemAVInfo},
 	{0, 0}
 };
