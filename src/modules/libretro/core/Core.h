@@ -141,6 +141,8 @@ public:
     bool setInput(unsigned port, Input input, unsigned index, int16_t value);
     bool setKey(unsigned port, Input input, lrcpp::Key key, bool pressed);
 
+    bool setVariable(const lrcpp::Variable &var);
+
     void step();
     
     const std::vector<lrcpp::Variable> &getVariables() const { return variables; }
@@ -257,8 +259,8 @@ protected:
     const std::string &configGetSystemPath() const;
     const std::string &configGetCoreAssetsDirectory() const;
     const std::string &configGetSaveDirectory() const;
-    const std::string &configGetVariable(const std::string &variable);
-    bool configVarUpdated();
+
+    bool variablesUpdated;
 
     // Log
     void logVprintf(enum retro_log_level level, const char* fmt, va_list args);
@@ -274,6 +276,7 @@ protected:
     
     std::vector<lrcpp::InputDescriptor> inputDescriptors;
     std::vector<lrcpp::Variable> variables;
+    std::vector<std::string> values;
     
     lrcpp::HWRenderCallback hardwareRenderCallback;
     bool needsHardwareRender;

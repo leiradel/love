@@ -80,6 +80,8 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
     bpp = 0;
     image = nullptr;
 
+    variablesUpdated = false;
+
     libretroPath = {};
     performanceLevel = 0;
     supportsNoGame = false;
@@ -302,6 +304,35 @@ bool Core::setKey(unsigned port, Input input, lrcpp::Key key, bool pressed)
     return false;
 }
 
+bool Core::setVariable(const lrcpp::Variable &var)
+{
+    const size_t count = variables.size();
+
+    for (size_t i = 0; i < count; i++)
+    {
+        if (variables[i].key == var.key)
+        {
+            const size_t option = variables[i].value.find(var.value);
+
+            if (option != std::string::npos)
+            {
+                const size_t end = option + var.value.length();
+
+                if (end >= variables[i].value.length() || variables[i].value[end] != '|')
+                    return false;
+                else
+                {
+                    values[i] = var.value;
+                    variablesUpdated = true;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 void Core::step()
 {
     InstanceSetter instance_setter(this);
@@ -420,8 +451,18 @@ bool Core::setHWRender(struct retro_hw_render_callback *data)
 
 bool Core::getVariable(struct retro_variable *data)
 {
-    data->value = configGetVariable(data->key).c_str();
-    return true;
+    const size_t count = variables.size();
+
+    for (size_t i = 0; i < count; i++)
+    {
+        if (variables[i].key == data->key)
+        {
+            data->value = values[i].c_str();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Core::setVariables(const struct retro_variable *data)
@@ -432,10 +473,24 @@ bool Core::setVariables(const struct retro_variable *data)
 
     const size_t count = var - data;
     variables.resize(count);
+    values.resize(count);
 
     for (size_t i = 0; i < count; i++, data++)
     {
         variables[i] = *data;
+
+        const char *option = strchr(data->value, ';');
+
+        if (option != nullptr)
+        {
+            while (isspace(*++option)) /* Just skip */;
+            const char *pipe = strchr(option, '|');
+
+            if (pipe != nullptr)
+                values[i] = std::string(option, pipe - option);
+            else
+                values[i] = option;
+        }
     }
 
     return true;
@@ -443,7 +498,8 @@ bool Core::setVariables(const struct retro_variable *data)
 
 bool Core::getVariableUpdate(bool *data)
 {
-    *data = configVarUpdated();
+    *data = variablesUpdated;
+    variablesUpdated = false;
     return true;
 }
 
@@ -789,7 +845,7 @@ size_t Core::audioSampleBatchCallback(const int16_t *data, size_t frames)
 {
     if (samplesCount + frames * 2 < sizeof(samples) / sizeof(samples[0]))
     {
-        memcpy(samples + samplesCount, data, frames * 2 * sizeof(int16_t));
+        memcpy(samples + samplesCount, data, frames * 4);
         samplesCount += frames * 2;
     }
 
@@ -1038,19 +1094,6 @@ const std::string &Core::configGetSaveDirectory() const
     // TODO implement me!
     static const std::string path = "~/home/.love/libretro/saves";
     return path;
-}
-
-const std::string &Core::configGetVariable(const std::string &variable)
-{
-    // TODO implement me!
-    static const std::string value = "";
-    return value;
-}
-
-bool Core::configVarUpdated()
-{
-    // TODO implement me!
-    return false;
 }
 
 void Core::logVprintf(enum retro_log_level level, const char* fmt, va_list args)

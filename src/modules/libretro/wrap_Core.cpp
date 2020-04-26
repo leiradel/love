@@ -352,6 +352,20 @@ static int w_Core_setKey(lua_State *L)
 	return 0;
 }
 
+static int w_Core_setVariable(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    const char *key = luaL_checkstring(L, 2);
+    const char *value = luaL_checkstring(L, 3);
+
+    lrcpp::Variable var;
+    var.key = key;
+    var.value = value;
+
+    lua_pushboolean(L, core->setVariable(var) ? 1 : 0);
+    return 1;
+}
+
 static int w_Core_getVariables(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
@@ -429,6 +443,7 @@ static const luaL_Reg core_functions[] =
 	{"setControllerPortDevice", w_Core_setControllerPortDevice},
 	{"setInput", w_Core_setInput},
 	{"setKey", w_Core_setKey},
+	{"setVariable", w_Core_setVariable},
     {"getVariables", w_Core_getVariables},
     {"getSystemAVInfo", w_Core_getSystemAVInfo},
 	{0, 0}
