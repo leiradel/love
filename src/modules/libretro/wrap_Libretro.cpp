@@ -34,49 +34,49 @@ namespace libretro
 
 int w_newCore(lua_State *L)
 {
-	const char *corePath = luaL_checkstring(L, 1);
-	const char *gamePath = luaL_optstring(L, 2, "");
+    const char *corePath = luaL_checkstring(L, 1);
+    const char *gamePath = luaL_optstring(L, 2, "");
 
-	Core *core = nullptr;
-	luax_catchexcept(L, [&]() {
-		core = instance()->newCore(corePath, gamePath);
-	});
+    Core *core = nullptr;
+    luax_catchexcept(L, [&]() {
+        core = instance()->newCore(corePath, gamePath);
+    });
 
-	luax_pushtype(L, core);
-	core->release();
-	return 1;
+    luax_pushtype(L, core);
+    core->release();
+    return 1;
 }
 
 static const lua_CFunction types[] =
 {
-	luaopen_core,
-	0
+    luaopen_core,
+    0
 };
 
 static const luaL_Reg functions[] =
 {
-	{ "newCore", w_newCore },
-	{ 0, 0 }
+    { "newCore", w_newCore },
+    { 0, 0 }
 };
 
 extern "C" int luaopen_love_libretro(lua_State *L)
 {
-	Libretro *instance = instance();
-	if (instance == nullptr)
-	{
-		luax_catchexcept(L, [&](){ instance = new love::libretro::Libretro(); });
-	}
-	else
-		instance->retain();
+    Libretro *instance = instance();
+    if (instance == nullptr)
+    {
+        luax_catchexcept(L, [&](){ instance = new love::libretro::Libretro(); });
+    }
+    else
+        instance->retain();
 
-	WrappedModule w;
-	w.module = instance;
-	w.name = "libretro";
-	w.type = &Module::type;
-	w.functions = functions;
-	w.types = types;
+    WrappedModule w;
+    w.module = instance;
+    w.name = "libretro";
+    w.type = &Module::type;
+    w.functions = functions;
+    w.types = types;
 
-	return luax_register_module(L, w);
+    return luax_register_module(L, w);
 }
 
 } // libretro

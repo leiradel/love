@@ -420,9 +420,7 @@ bool Core::setInputDescriptors(const struct retro_input_descriptor *data)
     inputDescriptors.resize(count);
 
     for (size_t i = 0; i < count; i++, data++)
-    {
         inputDescriptors[i] = *data;
-    }
     
     return true;
 }
@@ -1135,9 +1133,7 @@ static size_t addBitsDown(size_t n)
 
     /* double shift to avoid warnings on 32bit (it's dead code, but compilers suck) */
     if (sizeof(size_t) > 4)
-    {
         n |= n >> 16 >> 16;
-    }
 
     return n;
 }

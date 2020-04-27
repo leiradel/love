@@ -43,7 +43,7 @@ class Core : public Object
 {
 public:
 
-	static love::Type type;
+    static love::Type type;
 
     enum
     {
@@ -132,7 +132,7 @@ public:
 #undef MKINPUT3
 
     Core(const std::string& corePath, const std::string &gamePath);
-	virtual ~Core();
+    virtual ~Core();
 
     love::StrongRef<love::graphics::Image> &getImage();
 

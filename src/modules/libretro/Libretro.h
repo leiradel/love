@@ -36,17 +36,17 @@ namespace libretro
 class Libretro : public Module
 {
 public:
-	Libretro() {}
-	virtual ~Libretro() {}
+    Libretro() {}
+    virtual ~Libretro() {}
 
-	// Implements Module
-	virtual ModuleType getModuleType() const { return M_LIBRETRO; }
-	virtual const char *getName() const { return "love.libretro"; }
+    // Implements Module
+    virtual ModuleType getModuleType() const { return M_LIBRETRO; }
+    virtual const char *getName() const { return "love.libretro"; }
 
-	/**
-	 * Create a LibretroCore representing a loaded libretro core
-	 **/
-	virtual Core *newCore(const std::string &corePath, const std::string &gamePath);
+    /**
+     * Create a LibretroCore representing a loaded libretro core
+     **/
+    virtual Core *newCore(const std::string &corePath, const std::string &gamePath);
 }; // Video
 
 } // video

@@ -280,31 +280,31 @@ static bool getKey(const char *name, lrcpp::Key &key)
 
 static Core *luax_checkcore(lua_State *L, int idx)
 {
-	return luax_checktype<Core>(L, idx);
+    return luax_checktype<Core>(L, idx);
 }
 
 static int w_Core_step(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     core->step();
     return 0;
 }
 
 static int w_Core_getImage(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     luax_pushtype<love::graphics::Image>(L, core->getImage());
     return 1;
 }
 
 static int w_Core_setControllerPortDevice(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
-	int port = (int) luaL_checkinteger(L, 2) - 1;
+    auto core = luax_checkcore(L, 1);
+    int port = (int) luaL_checkinteger(L, 2) - 1;
 
-	if (port < 0 || port >= Core::MaxPorts)
-		return luaL_error(L, "Port outside of valid range [0,%d]", Core::MaxPorts - 1);
-	
+    if (port < 0 || port >= Core::MaxPorts)
+        return luaL_error(L, "Port outside of valid range [0,%d]", Core::MaxPorts - 1);
+    
     if (lua_isnumber(L, 3))
     {
         int device = (int) luaL_checkinteger(L, 3);
@@ -321,67 +321,67 @@ static int w_Core_setControllerPortDevice(lua_State *L)
         core->setControllerPortDevice(port, device);
     }
 
-	return 0;
+    return 0;
 }
 
 static int w_Core_setInput(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
-	int port = (int) luaL_checkinteger(L, 2) - 1;
+    auto core = luax_checkcore(L, 1);
+    int port = (int) luaL_checkinteger(L, 2) - 1;
 
-	Core::Input input;
-	const char *inputStr = luaL_checkstring(L, 3);
+    Core::Input input;
+    const char *inputStr = luaL_checkstring(L, 3);
 
-	if (!getInput(inputStr, input))
-		return luaL_error(L, "Invalid core input '%s'", inputStr);
-	
-	if (lua_isnoneornil(L, 5))
-	{
-		int value = (int) luaL_checkinteger(L, 4);
-			
-		if (!core->setInput(port, input, value))
-			return luaL_error(L, "Invalid core input '%s'", inputStr);
-	}
-	else
-	{
-		int index = (int) luaL_checkinteger(L, 4);
-		int value = (int) luaL_checkinteger(L, 5);
-			
-		if (!core->setInput(port, input, index, value))
-			return luaL_error(L, "Invalid core input '%s' with index %d", inputStr, index);
-	}
+    if (!getInput(inputStr, input))
+        return luaL_error(L, "Invalid core input '%s'", inputStr);
+    
+    if (lua_isnoneornil(L, 5))
+    {
+        int value = (int) luaL_checkinteger(L, 4);
+            
+        if (!core->setInput(port, input, value))
+            return luaL_error(L, "Invalid core input '%s'", inputStr);
+    }
+    else
+    {
+        int index = (int) luaL_checkinteger(L, 4);
+        int value = (int) luaL_checkinteger(L, 5);
+            
+        if (!core->setInput(port, input, index, value))
+            return luaL_error(L, "Invalid core input '%s' with index %d", inputStr, index);
+    }
 
-	return 0;
+    return 0;
 }
 
 static int w_Core_setKey(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
-	int port = (int) luaL_checkinteger(L, 2) - 1;
+    auto core = luax_checkcore(L, 1);
+    int port = (int) luaL_checkinteger(L, 2) - 1;
 
-	Core::Input input;
-	const char *inputStr = luaL_checkstring(L, 3);
+    Core::Input input;
+    const char *inputStr = luaL_checkstring(L, 3);
 
-	if (!getInput(inputStr, input))
-		return luaL_error(L, "Invalid core input '%s'", inputStr);
+    if (!getInput(inputStr, input))
+        return luaL_error(L, "Invalid core input '%s'", inputStr);
 
-	lrcpp::Key key;
-	const char *keyStr = luaL_checkstring(L, 4);
+    lrcpp::Key key;
+    const char *keyStr = luaL_checkstring(L, 4);
 
-	if (!getKey(keyStr, key))
-		return luaL_error(L, "Invalid key '%s'", keyStr);
-	
+    if (!getKey(keyStr, key))
+        return luaL_error(L, "Invalid key '%s'", keyStr);
+    
     int pressed = lua_toboolean(L, 5);
 
     if (!core->setKey(port, input, key, pressed != 0))
         return luaL_error(L, "Invalid key '%s'", keyStr);
 
-	return 0;
+    return 0;
 }
 
 static int w_Core_setVariable(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     const char *key = luaL_checkstring(L, 2);
     const char *value = luaL_checkstring(L, 3);
 
@@ -395,7 +395,7 @@ static int w_Core_setVariable(lua_State *L)
 
 static int w_Core_getVariables(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     const auto &variables = core->getVariables();
 
     if (lua_istable(L, 2))
@@ -414,7 +414,7 @@ static int w_Core_getVariables(lua_State *L)
 
 static int w_Core_getInputDescriptors(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     const auto &descs = core->getInputDescriptors();
 
     if (lua_istable(L, 2))
@@ -447,7 +447,7 @@ static int w_Core_getInputDescriptors(lua_State *L)
 
 static int w_Core_getControllerInfo(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     const auto &infos = core->getControllerInfo();
 
     if (lua_istable(L, 2))
@@ -490,7 +490,7 @@ static int w_Core_getControllerInfo(lua_State *L)
 
 static int w_Core_getSystemInfo(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     const auto &info = core->getSystemInfo();
 
     if (lua_istable(L, 2))
@@ -514,7 +514,7 @@ static int w_Core_getSystemInfo(lua_State *L)
 
 static int w_Core_getSystemAVInfo(lua_State *L)
 {
-	auto core = luax_checkcore(L, 1);
+    auto core = luax_checkcore(L, 1);
     const auto &info = core->getSystemAVInfo();
 
     if (lua_istable(L, 2))
@@ -566,22 +566,22 @@ static int w_Core_getSystemAVInfo(lua_State *L)
 static const luaL_Reg core_functions[] =
 {
     {"step", w_Core_step},
-	{"getImage", w_Core_getImage},
-	{"setControllerPortDevice", w_Core_setControllerPortDevice},
-	{"setInput", w_Core_setInput},
-	{"setKey", w_Core_setKey},
-	{"setVariable", w_Core_setVariable},
+    {"getImage", w_Core_getImage},
+    {"setControllerPortDevice", w_Core_setControllerPortDevice},
+    {"setInput", w_Core_setInput},
+    {"setKey", w_Core_setKey},
+    {"setVariable", w_Core_setVariable},
     {"getVariables", w_Core_getVariables},
     {"getInputDescriptors", w_Core_getInputDescriptors},
     {"getControllerInfo", w_Core_getControllerInfo},
     {"getSystemInfo", w_Core_getSystemInfo},
     {"getSystemAVInfo", w_Core_getSystemAVInfo},
-	{0, 0}
+    {0, 0}
 };
 
 int luaopen_core(lua_State *L)
 {
-	return luax_register_type(L, &Core::type, core_functions, nullptr);
+    return luax_register_type(L, &Core::type, core_functions, nullptr);
 }
 
 } // libretro
