@@ -488,6 +488,30 @@ static int w_Core_getControllerInfo(lua_State *L)
     return 1;
 }
 
+static int w_Core_getSystemInfo(lua_State *L)
+{
+	auto core = luax_checkcore(L, 1);
+    const auto &info = core->getSystemInfo();
+
+    if (lua_istable(L, 2))
+        lua_pushvalue(L, 2);
+    else
+        lua_createtable(L, 0, 5);
+
+    lua_pushstring(L, info.libraryName.c_str());
+    lua_setfield(L, -2, "libraryName");
+    lua_pushstring(L, info.libraryVersion.c_str());
+    lua_setfield(L, -2, "libraryVersion");
+    lua_pushstring(L, info.validExtensions.c_str());
+    lua_setfield(L, -2, "validExtensions");
+    lua_pushboolean(L, info.needFullPath);
+    lua_setfield(L, -2, "needFullPath");
+    lua_pushboolean(L, info.blockExtract);
+    lua_setfield(L, -2, "blockExtract");
+
+    return 1;
+}
+
 static int w_Core_getSystemAVInfo(lua_State *L)
 {
 	auto core = luax_checkcore(L, 1);
@@ -550,6 +574,7 @@ static const luaL_Reg core_functions[] =
     {"getVariables", w_Core_getVariables},
     {"getInputDescriptors", w_Core_getInputDescriptors},
     {"getControllerInfo", w_Core_getControllerInfo},
+    {"getSystemInfo", w_Core_getSystemInfo},
     {"getSystemAVInfo", w_Core_getSystemAVInfo},
 	{0, 0}
 };

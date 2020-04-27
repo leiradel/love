@@ -149,6 +149,7 @@ public:
     const std::vector<lrcpp::Variable> &getVariables() const { return variables; }
     const std::vector<lrcpp::InputDescriptor> &getInputDescriptors() const { return inputDescriptors; }
     const std::vector<lrcpp::ControllerInfo> &getControllerInfo() const { return controllerInfo; }
+    const lrcpp::SystemInfo &getSystemInfo() const { return systemInfo; }
     const lrcpp::SystemAVInfo &getSystemAVInfo() const { return systemAVInfo; }
 
     static lrcpp::Device getDevice(Input input)
