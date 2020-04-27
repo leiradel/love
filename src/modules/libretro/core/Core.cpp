@@ -163,9 +163,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
         try
         {
             if (needsHardwareRender)
-            {
-                hardwareRenderCallback.contextReset();
-            }
+                throw love::Exception("Core needs hardware render");
 
             core.setVideoRefresh(staticVideoRefreshCallback);
             core.setAudioSampleBatch(staticAudioSampleBatchCallback);
