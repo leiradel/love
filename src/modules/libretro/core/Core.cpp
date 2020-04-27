@@ -1002,6 +1002,10 @@ bool Core::videoSupportsContext(enum retro_hw_context_type type)
 
 void Core::videoRefresh(const void* data, unsigned width, unsigned height, size_t pitch)
 {
+    // Check for frame duplication.
+    if (data == nullptr)
+        return;
+
     if (!image || image->getWidth() != width || image->getHeight() != height)
     {
         love::PixelFormat format;
