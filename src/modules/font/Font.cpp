@@ -20,6 +20,7 @@
 
 // LOVE
 #include "Font.h"
+#include "BDFFontRasterizer.h"
 #include "BMFontRasterizer.h"
 #include "ImageRasterizer.h"
 
@@ -52,6 +53,11 @@ Rasterizer *Font::newTrueTypeRasterizer(int size, float dpiscale, TrueTypeRaster
 {
 	StrongRef<DefaultFontData> data(new DefaultFontData, Acquire::NORETAIN);
 	return newTrueTypeRasterizer(data.get(), size, dpiscale, hinting);
+}
+
+Rasterizer *Font::newBDFFontRasterizer(love::filesystem::FileData *fontdef)
+{
+	return new BDFFontRasterizer(fontdef);
 }
 
 Rasterizer *Font::newBMFontRasterizer(love::filesystem::FileData *fontdef, const std::vector<image::ImageData *> &images, float dpiscale)

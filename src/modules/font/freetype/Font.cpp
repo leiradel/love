@@ -22,6 +22,7 @@
 
 // LOVE
 #include "TrueTypeRasterizer.h"
+#include "font/BDFFontRasterizer.h"
 #include "font/BMFontRasterizer.h"
 #include "window/Window.h"
 
@@ -48,7 +49,9 @@ Font::~Font()
 
 Rasterizer *Font::newRasterizer(love::filesystem::FileData *data)
 {
-	if (TrueTypeRasterizer::accepts(library, data))
+	if (BDFFontRasterizer::accepts(data))
+		return newBDFFontRasterizer(data);
+	else if (TrueTypeRasterizer::accepts(library, data))
 		return newTrueTypeRasterizer(data, 12, TrueTypeRasterizer::HINTING_NORMAL);
 	else if (BMFontRasterizer::accepts(data))
 		return newBMFontRasterizer(data, {}, 1.0f);

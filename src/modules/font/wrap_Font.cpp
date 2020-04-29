@@ -126,6 +126,21 @@ int w_newTrueTypeRasterizer(lua_State *L)
 	return 1;
 }
 
+int w_newBDFFontRasterizer(lua_State *L)
+{
+	Rasterizer *t = nullptr;
+	filesystem::FileData *d = filesystem::luax_getfiledata(L, 1);
+
+	luax_catchexcept(L,
+		[&]() { t = instance()->newBDFFontRasterizer(d); },
+		[&](bool) { d->release(); }
+	);
+
+	luax_pushtype(L, t);
+	t->release();
+	return 1;
+}
+
 static void convimagedata(lua_State *L, int idx)
 {
 	if (lua_type(L, 1) == LUA_TSTRING || luax_istype(L, idx, love::filesystem::File::type) || luax_istype(L, idx, love::filesystem::FileData::type))
@@ -217,6 +232,7 @@ static const luaL_Reg functions[] =
 {
 	{ "newRasterizer",  w_newRasterizer },
 	{ "newTrueTypeRasterizer", w_newTrueTypeRasterizer },
+	{ "newBDFFontRasterizer", w_newBDFFontRasterizer },
 	{ "newBMFontRasterizer", w_newBMFontRasterizer },
 	{ "newImageRasterizer", w_newImageRasterizer },
 	{ "newGlyphData",  w_newGlyphData },
