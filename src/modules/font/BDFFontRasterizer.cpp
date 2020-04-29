@@ -31,29 +31,6 @@ SOFTWARE.
 #include <stdlib.h>
 #include <ctype.h>
 
-#define BBX             UINT32_C(0x0b87d481)
-#define SIZE            UINT32_C(0x7c8bd560)
-#define SWIDTH          UINT32_C(0xcfcab8d8)
-#define ENDFONT         UINT32_C(0x7e1a9db3)
-#define ENCODING        UINT32_C(0x3fb5ea0c)
-#define STARTFONT       UINT32_C(0x8cf73faa)
-#define METRICSSET      UINT32_C(0xaf5b3888)
-#define DWIDTH          UINT32_C(0xaccd5769)
-#define ENDPROPERTIES   UINT32_C(0x58fbd469)
-#define STARTPROPERTIES UINT32_C(0xc27dd3a0)
-#define BITMAP          UINT32_C(0xa72bdb22)
-#define DWIDTH1         UINT32_C(0x467844ba)
-#define FONT            UINT32_C(0x7c84cc7c)
-#define ENDCHAR         UINT32_C(0x7e18d91a)
-#define STARTCHAR       UINT32_C(0x8cf57b11)
-#define CHARS           UINT32_C(0x0ce40496)
-#define COMMENT         UINT32_C(0xe721d578)
-#define FONTBOUNDINGBOX UINT32_C(0x3344af7b)
-#define CONTENTVERSION  UINT32_C(0x56774aa6)
-#define VVECTOR         UINT32_C(0xad72744e)
-
-#define XVAL(x) (isdigit(x) ? (x) - '0' : toupper(x) - 'A' + 10)
-
 namespace
 {
     class Reader
@@ -156,14 +133,16 @@ namespace
             if (!isxdigit(current()))
                 throw love::Exception("Hexadecimal digit expected");
             
-            int val = XVAL(current()) * 16;
+            uint8_t k = current();
             skip();
+            int val = (isdigit(k) ? k - '0' : toupper(k) - 'A' + 10) * 16;
 
             if (!isxdigit(current()))
                 throw love::Exception("Hexadecimal digit expected");
             
-            val |= XVAL(current());
+            k = current();
             skip();
+            val |= isdigit(k) ? k - '0' : toupper(k) - 'A' + 10;
             return val;
         }
 
@@ -182,6 +161,13 @@ BDFFontRasterizer::BDFFontRasterizer(love::filesystem::FileData *fontdef)
     : lineHeight(0)
     , baseLine(0)
 {
+    dpiScale = 1.0f;
+
+    metrics.advance = 0;
+    metrics.ascent = 0;
+    metrics.descent = 0;
+    metrics.height = 0;
+
     parseFont((const char *) fontdef->getData(), fontdef->getSize());
 }
 
@@ -203,7 +189,7 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
         switch (hash)
         {
             // Starts a font.
-            case STARTFONT:
+            case UINT32_C(0x8cf73faa): // STARTFONT
             {
                 int major = reader.readInt();
 
@@ -222,7 +208,7 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
             }
 
             // The FONTBOUNDINGBOX values seems to be defaults for BBX values.
-            case FONTBOUNDINGBOX:
+            case UINT32_C(0x3344af7b): // FONTBOUNDINGBOX
             {
                 defaults.width = reader.readInt();
                 defaults.height = reader.readInt();
@@ -234,11 +220,14 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
                 lineHeight = defaults.height;
                 baseLine = defaults.height + defaults.bearingY;
 
+                metrics.ascent = baseLine;
+                metrics.descent = lineHeight - baseLine;
+
                 reader.skipLine();
                 break;
             }
 
-            case METRICSSET:
+            case UINT32_C(0xaf5b3888): // METRICSSET
             {
                 const int metricsSet = reader.readInt();
 
@@ -251,15 +240,17 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
             }
 
             // This is the character's width in pixels.
-            case DWIDTH:
+            case UINT32_C(0xaccd5769): // DWIDTH
             {
                 chr.advance = reader.readInt();
+                metrics.advance = std::max(metrics.advance, chr.advance);
+
                 reader.readInt();
                 reader.skipLine();
                 break;
             }
 
-            case CHARS:
+            case UINT32_C(0x0ce40496): // CHARS
             {
                 // Read the number of chars in this font and malloc the required memory.
                 numChars = reader.readInt();
@@ -267,7 +258,7 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
                 break;
             }
 
-            case STARTCHAR:
+            case UINT32_C(0x8cf57b11): // STARTCHAR
             {
                 // Copy default values.
                 chr = defaults;
@@ -275,7 +266,7 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
                 break;
             }
 
-            case ENCODING:
+            case UINT32_C(0x3fb5ea0c): // ENCODING
             {
                 // Read character's code and glyph index, they can be -1.
                 code = reader.readInt();
@@ -285,38 +276,34 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
             }
 
             // The bounding box around the character's black pixels.
-            case BBX:
+            case UINT32_C(0x0b87d481): // BBX
             {
                 chr.width = reader.readInt();
                 chr.height = reader.readInt();
                 chr.bearingX = reader.readInt();
                 chr.bearingY = reader.readInt();
 
+                metrics.height = std::max(metrics.height, chr.height);
                 reader.skipLine();
                 break;
             }
 
             // BITMAP signals the start of the hex data.
-            case BITMAP:
+            case UINT32_C(0xa72bdb22): // BITMAP
             {
                 reader.skipLine();
 
-                // wbytes is the width of the char in bytes.
+                // wbytes is the width of the character in bytes.
                 const int wbytes = (chr.width + 7) / 8;
 
                 // Allocate memory for the pixels.
-                chr.bits = bitmaps.size();
+                size_t ndx = chr.bits = bitmaps.size();
                 bitmaps.resize(chr.bits + wbytes * chr.height);
-
-                // Read all pixels from file.
-                size_t ndx = chr.bits;
 
                 for (int y = 0; y < chr.height; y++)
                 {
                     for (int x = 0; x < wbytes; x++)
-                    {
                         bitmaps[ndx++] = reader.readHex();
-                    }
 
                     reader.skipLine();
                 }
@@ -324,14 +311,14 @@ void BDFFontRasterizer::parseFont(const char *source, size_t length)
                 break;
             }
 
-            case ENDCHAR:
+            case UINT32_C(0x7e18d91a): // ENDCHAR
             {
                 characters.insert({code != -1 ? code : glyph, chr});
                 reader.skipLine();
                 break;
             }
 
-            case ENDFONT:
+            case UINT32_C(0x7e1a9db3): // ENDFONT
                 return;
 
             default:
@@ -355,7 +342,7 @@ GlyphData *BDFFontRasterizer::getGlyphData(uint32 glyph) const
 
     // Return an empty GlyphData if we don't have the glyph character.
     if (it == characters.end())
-        return new GlyphData(glyph, GlyphMetrics(), PIXELFORMAT_RGBA8);
+        return new GlyphData(glyph, GlyphMetrics(), PIXELFORMAT_LA8);
 
     const Character &c = it->second;
 
@@ -364,20 +351,19 @@ GlyphData *BDFFontRasterizer::getGlyphData(uint32 glyph) const
     size_t bits = c.bits;
 
     // Copy the subsection of the texture from the ImageData to the GlyphData.
-    int wbytes = (c.width + 7) / 8;
-
     for (int y = 0; y < c.height; y++)
     {
-        for (int x = 0; x < c.width; x++)
+        for (int x = 0; x < c.width; x += 8)
         {
-            uint8_t byte = bitmaps[bits + x / 8];
-            bool bit = (byte & (1 << (x & 7))) != 0;
+            uint8_t byte = bitmaps[bits++];
+            int max = std::min(c.width - x, 8);
 
-            *pixels++ = bit ? 0xc0 : 0x40;
-            *pixels++ = 0x80;
+            for (int z = 0, bit = 128; z < max; z++, bit >>= 1)
+            {
+                *pixels++ = 0xff;
+                *pixels++ = (byte & bit) ? 0xff : 0x00;
+            }
         }
-
-        bits += wbytes;
     }
 
     return g;
