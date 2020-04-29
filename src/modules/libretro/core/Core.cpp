@@ -156,9 +156,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
         }
 
         if (!core.loadGame(&game))
-        {
             throw love::Exception("Error loading game \"%s\"", gamePath.c_str());
-        }
 
         try
         {
