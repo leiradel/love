@@ -229,7 +229,7 @@ bool Core::setInput(unsigned port, Input input, int16_t value)
         lrcpp::Device device = getDevice(input);
         unsigned udev = static_cast<unsigned>(device);
 
-        if (udev < MaxDevices && device != lrcpp::Device::Pointer)
+        if (udev < MaxDevices && device != lrcpp::Device::Pointer && device != lrcpp::Device::Keyboard)
         {
             lrcpp::DeviceIndex index = getDeviceIndex(input);
             unsigned uidx = static_cast<unsigned>(index);
