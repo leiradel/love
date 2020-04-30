@@ -212,11 +212,6 @@ Core::~Core()
     delete source;
 }
 
-love::StrongRef<love::graphics::Image> &Core::getImage()
-{
-    return image;
-}
-
 void Core::setControllerPortDevice(unsigned port, lrcpp::Device device)
 {
     core.setControllerPortDevice(port, static_cast<unsigned>(device));

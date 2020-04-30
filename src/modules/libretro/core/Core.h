@@ -134,7 +134,8 @@ public:
     Core(const std::string& corePath, const std::string &gamePath);
     virtual ~Core();
 
-    love::StrongRef<love::graphics::Image> &getImage();
+    love::StrongRef<love::graphics::Image> &getImage() { return image; }
+    love::StrongRef<love::audio::Source> &getSource() { return source; }
 
     void setControllerPortDevice(unsigned port, lrcpp::Device device);
     void setControllerPortDevice(unsigned port, unsigned device);
@@ -241,7 +242,7 @@ protected:
 
     int16_t samples[16384];
     size_t samplesCount;
-    love::audio::Source* source;
+    love::StrongRef<love::audio::Source> source;
 
     // Video
     void videoSetGeometry(unsigned width, unsigned height, float aspect, lrcpp::PixelFormat pixelFormat,

@@ -297,6 +297,13 @@ static int w_Core_getImage(lua_State *L)
     return 1;
 }
 
+static int w_Core_getSource(lua_State *L)
+{
+    auto core = luax_checkcore(L, 1);
+    luax_pushtype<love::audio::Source>(L, core->getSource());
+    return 1;
+}
+
 static int w_Core_setControllerPortDevice(lua_State *L)
 {
     auto core = luax_checkcore(L, 1);
@@ -567,6 +574,7 @@ static const luaL_Reg core_functions[] =
 {
     {"step", w_Core_step},
     {"getImage", w_Core_getImage},
+    {"getSource", w_Core_getSource},
     {"setControllerPortDevice", w_Core_setControllerPortDevice},
     {"setInput", w_Core_setInput},
     {"setKey", w_Core_setKey},
