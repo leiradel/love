@@ -339,7 +339,7 @@ struct SystemInfo
     {
         libraryName = value.library_name;
         libraryVersion = value.library_version;
-        validExtensions = value.valid_extensions;
+        validExtensions = value.valid_extensions ? value.valid_extensions : "";
         needFullPath = value.need_fullpath;
         blockExtract = value.block_extract;
     }
