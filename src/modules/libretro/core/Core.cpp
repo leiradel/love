@@ -1087,21 +1087,21 @@ retro_proc_address_t Core::videoGetProcAddress(const char *symbol)
 const std::string &Core::configGetSystemPath() const
 {
     // TODO implement me!
-    static const std::string path = "~/home/.love/libretro/system";
+    static const std::string path = "/home/leiradel/.love/libretro/system";
     return path;
 }
 
 const std::string &Core::configGetCoreAssetsDirectory() const
 {
     // TODO implement me!
-    static const std::string path = "~/home/.love/libretro/assets";
+    static const std::string path = "/home/leiradel/.love/libretro/assets";
     return path;
 }
 
 const std::string &Core::configGetSaveDirectory() const
 {
     // TODO implement me!
-    static const std::string path = "~/home/.love/libretro/saves";
+    static const std::string path = "/home/leiradel/.love/libretro/saves";
     return path;
 }
 
