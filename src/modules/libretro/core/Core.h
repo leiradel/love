@@ -168,6 +168,21 @@ public:
         return static_cast<lrcpp::DeviceId>(static_cast<uint32_t>(input) & 0xff);
     }
 
+    static void setSystemPath(const std::string &path)
+    {
+        systemPath = path;
+    }
+
+    static void setCoreAssetsDirectory(const std::string &path)
+    {
+        coreAssetsDirectory = path;
+    }
+
+    static void setSaveDirectory(const std::string &path)
+    {
+        saveDirectory = path;
+    }
+
 protected:
     // Environment functions
     bool setRotation(unsigned data);
@@ -258,11 +273,10 @@ protected:
     love::StrongRef<love::graphics::Image> image;
 
     // Config
-    const std::string &configGetSystemPath() const;
-    const std::string &configGetCoreAssetsDirectory() const;
-    const std::string &configGetSaveDirectory() const;
-
     bool variablesUpdated;
+    static std::string systemPath;
+    static std::string coreAssetsDirectory;
+    static std::string saveDirectory;
 
     // Log
     void logVprintf(enum retro_log_level level, const char* fmt, va_list args);

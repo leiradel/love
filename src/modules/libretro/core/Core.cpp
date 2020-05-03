@@ -63,6 +63,10 @@ protected:
 
 love::Type Core::type("Core", &Object::type);
 
+std::string Core::systemPath;
+std::string Core::coreAssetsDirectory;
+std::string Core::saveDirectory;
+
 Core::Core(const std::string& corePath, const std::string &gamePath)
     : core(corePath)
 {
@@ -375,7 +379,7 @@ bool Core::setPerformanceLevel(unsigned data)
 
 bool Core::getSystemDirectory(const char **data) const
 {
-    *data = configGetSystemPath().c_str();
+    *data = systemPath.c_str();
     return true;
 }
 
@@ -564,13 +568,13 @@ bool Core::getLocationInterface(struct retro_location_callback *data) const
 
 bool Core::getCoreAssetsDirectory(const char **data) const
 {
-    *data = configGetCoreAssetsDirectory().c_str();
+    *data = coreAssetsDirectory.c_str();
     return true;
 }
 
 bool Core::getSaveDirectory(const char** data) const
 {
-    *data = configGetSaveDirectory().c_str();
+    *data = saveDirectory.c_str();
     return true;
 }
 
@@ -1072,27 +1076,6 @@ retro_proc_address_t Core::videoGetProcAddress(const char *symbol)
 {
     // TODO implement me!
     return nullptr;
-}
-
-const std::string &Core::configGetSystemPath() const
-{
-    // TODO implement me!
-    static const std::string path = "/home/leiradel/.love/libretro/system";
-    return path;
-}
-
-const std::string &Core::configGetCoreAssetsDirectory() const
-{
-    // TODO implement me!
-    static const std::string path = "/home/leiradel/.love/libretro/assets";
-    return path;
-}
-
-const std::string &Core::configGetSaveDirectory() const
-{
-    // TODO implement me!
-    static const std::string path = "/home/leiradel/.love/libretro/saves";
-    return path;
 }
 
 void Core::logVprintf(enum retro_log_level level, const char* fmt, va_list args)

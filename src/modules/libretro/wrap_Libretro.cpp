@@ -47,6 +47,25 @@ int w_newCore(lua_State *L)
     return 1;
 }
 
+int w_setPaths(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+
+    lua_getfield(L, -1, "systemPath");
+    const char *systemPath = luaL_checkstring(L, -1);
+    Core::setSystemPath(systemPath);
+
+    lua_getfield(L, -2, "coreAssetsDirectory");
+    const char *coreAssetsDirectory = luaL_checkstring(L, -1);
+    Core::setCoreAssetsDirectory(coreAssetsDirectory);
+
+    lua_getfield(L, -3, "saveDirectory");
+    const char *saveDirectory = luaL_checkstring(L, -1);
+    Core::setSaveDirectory(saveDirectory);
+
+    return 0;
+}
+
 static const lua_CFunction types[] =
 {
     luaopen_core,
@@ -56,6 +75,7 @@ static const lua_CFunction types[] =
 static const luaL_Reg functions[] =
 {
     { "newCore", w_newCore },
+    { "setPaths", w_setPaths },
     { 0, 0 }
 };
 
