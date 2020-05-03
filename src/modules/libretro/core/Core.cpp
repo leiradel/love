@@ -71,8 +71,7 @@ Core::Core(const std::string& corePath, const std::string &gamePath)
     memset(ctrlState, 0, sizeof(ctrlState));
     memset(keyState, 0, sizeof(keyState));
 
-    memset(samples, 0, sizeof(samples));
-    samplesCount = 0;
+    samples = {};
     source = nullptr;
 
     pixelFormat = lrcpp::PixelFormat::Unknown;
@@ -333,11 +332,11 @@ void Core::step()
 {
     InstanceSetter instance_setter(this);
 
-    samplesCount = 0;
+    samples.clear();
     core.run();
 
-    if (samplesCount > 0)
-        audioMix(samples, samplesCount / 2);
+    if (samples.size() > 0)
+        audioMix(samples.data(), samples.size() / 2);
 }
 
 bool Core::setRotation(unsigned data)
@@ -837,22 +836,18 @@ void Core::videoRefreshCallback(const void* data, unsigned width, unsigned heigh
 
 size_t Core::audioSampleBatchCallback(const int16_t *data, size_t frames)
 {
-    if (samplesCount + frames * 2 < sizeof(samples) / sizeof(samples[0]))
-    {
-        memcpy(samples + samplesCount, data, frames * 4);
-        samplesCount += frames * 2;
-    }
+    const size_t size = samples.size();
+
+    samples.resize(size + frames * 2);
+    memcpy(samples.data() + size, data, frames * 4);
 
     return frames;
 }
 
 void Core::audioSampleCallback(int16_t left, int16_t right)
 {
-    if (samplesCount + 2 < sizeof(samples) / sizeof(samples[0]))
-    {
-        samples[samplesCount++] = left;
-        samples[samplesCount++] = right;
-    }
+    samples.push_back(left);
+    samples.push_back(right);
 }
 
 int16_t Core::inputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)

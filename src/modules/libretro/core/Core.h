@@ -240,8 +240,7 @@ protected:
     void audioSetRate(double rate);
     void audioMix(const int16_t *samples, size_t frames);
 
-    int16_t samples[16384];
-    size_t samplesCount;
+    std::vector<int16_t> samples;
     love::StrongRef<love::audio::Source> source;
 
     // Video
